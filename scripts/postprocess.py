@@ -4,7 +4,9 @@
 Loads voltage/timing waveforms from ngspice raw files, computes per-corner
 performance metrics with NumPy, and returns a pandas DataFrame. Published
 per-block tables are written via ``write_performance_csvs`` to
-``reports/ls_up_perf.csv`` and ``reports/por_perf.csv``.
+``reports/ls_up_perf.csv`` and ``reports/por_perf.csv``. PNG performance
+plots are written via ``write_performance_plots`` to ``reports/ls_up_plot.png``
+and ``reports/por_plot.png``.
 
 Metrics
 -------
@@ -15,8 +17,8 @@ Metrics
 - seu_upset_tolerance  : 1.0 if output recovers after an SEU pulse within
                          the post-pulse window, else 0.0 (NaN if no SEU)
 
-Dependencies: numpy, pandas. Optionally uses PySpice's RawFile when installed;
-otherwise a built-in ngspice ASCII/binary .raw parser is used.
+Dependencies: numpy, pandas, matplotlib. Optionally uses PySpice's RawFile
+when installed; otherwise a built-in ngspice ASCII/binary .raw parser is used.
 """
 
 from __future__ import annotations
@@ -835,6 +837,21 @@ PERF_CSV_FILES = {
     "POR": "por_perf.csv",
 }
 
+PERF_PLOT_FILES = {
+    "LS_UP": "ls_up_plot.png",
+    "POR": "por_plot.png",
+}
+
+# Marker / color legend keys for process corners (ss/tt/ff).
+_CORNER_STYLE: dict[str, dict[str, str]] = {
+    "ss": {"color": "#1f77b4", "marker": "s"},
+    "tt": {"color": "#2ca02c", "marker": "o"},
+    "ff": {"color": "#d62728", "marker": "^"},
+}
+_CORNER_ORDER = ("ss", "tt", "ff")
+# Nominal core VDDL used to recover LS_UP Vout ≈ gain · VDDL from the CSV schema.
+_LS_UP_VDDL_NOM = 1.8
+
 
 def metrics_to_perf_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Map the post-processing metrics DataFrame to the published CSV schema.
@@ -907,6 +924,222 @@ def write_performance_csvs(
         block_df.to_csv(out_path, index=False)
         written[block] = out_path
     return written
+
+
+# ---------------------------------------------------------------------------
+# Performance PNG plots (published reports/)
+# ---------------------------------------------------------------------------
+
+def _estimate_output_voltage(block_df: pd.DataFrame, block: str) -> pd.Series:
+    """Estimate output voltage from the published performance schema.
+
+    LS_UP large-signal gain is |ΔVout/ΔVin| ≈ VDDH/VDDL, so
+    Vout ≈ gain · VDDL (nominal 1.8 V core). POR_N tracks VDD once released,
+    so the high-level output equals the supply column.
+    """
+    supply = pd.to_numeric(block_df["supply"], errors="coerce")
+    gain = pd.to_numeric(block_df["gain"], errors="coerce")
+    if block == "LS_UP":
+        vout = gain * _LS_UP_VDDL_NOM
+        # Fall back to supply (VDDH) when gain is missing.
+        return vout.where(np.isfinite(vout), supply)
+    return supply
+
+
+def _corner_groups(block_df: pd.DataFrame) -> list[tuple[str, pd.DataFrame]]:
+    """Yield (corner, subset) in ss/tt/ff order, then any remaining corners."""
+    if block_df.empty or "corner" not in block_df.columns:
+        return []
+    corners = [c for c in _CORNER_ORDER if c in set(block_df["corner"].astype(str))]
+    extras = sorted(
+        c for c in set(block_df["corner"].astype(str)) if c not in _CORNER_ORDER
+    )
+    groups: list[tuple[str, pd.DataFrame]] = []
+    for corner in [*corners, *extras]:
+        groups.append((corner, block_df.loc[block_df["corner"].astype(str) == corner]))
+    return groups
+
+
+def _plot_block_performance(block_df: pd.DataFrame, block: str, out_path: Path) -> Path:
+    """Render a 3-panel PNG for one block and write it to *out_path*."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 3, figsize=(12.0, 3.8), constrained_layout=True)
+    fig.suptitle(f"{block} performance", fontsize=12)
+
+    # --- Panel 1: supply vs output voltage (non-SEU nominal points) ---
+    ax = axes[0]
+    nom = block_df
+    if "SEU_state" in block_df.columns:
+        seu_col = block_df["SEU_state"]
+        if seu_col.dtype == object:
+            seu_mask = seu_col.astype(str).str.lower().isin(("true", "1", "yes"))
+        else:
+            seu_mask = seu_col.astype(bool)
+        nom = block_df.loc[~seu_mask]
+    if nom.empty:
+        nom = block_df
+    vout = _estimate_output_voltage(nom, block)
+    for corner, sub in _corner_groups(nom):
+        style = _CORNER_STYLE.get(corner, {"color": "0.3", "marker": "D"})
+        x = pd.to_numeric(sub["supply"], errors="coerce")
+        y = vout.loc[sub.index]
+        ax.plot(
+            x,
+            y,
+            linestyle="-",
+            linewidth=1.2,
+            markersize=7,
+            label=str(corner),
+            **style,
+        )
+    ax.set_xlabel("Supply (V)")
+    ax.set_ylabel("Output voltage (V)")
+    ax.set_title("Supply vs output voltage")
+    ax.grid(True, alpha=0.3)
+    ax.legend(title="Corner", loc="best", frameon=True)
+
+    # --- Panel 2: temperature vs delay / reset time ---
+    ax = axes[1]
+    delay_col = "delay" if block == "LS_UP" else "reset_time"
+    delay_label = "Propagation delay (ns)" if block == "LS_UP" else "Reset time (µs)"
+    scale = 1e9 if block == "LS_UP" else 1e6
+    for corner, sub in _corner_groups(nom):
+        style = _CORNER_STYLE.get(corner, {"color": "0.3", "marker": "D"})
+        x = pd.to_numeric(sub["temperature"], errors="coerce")
+        y = pd.to_numeric(sub[delay_col], errors="coerce") * scale
+        order = np.argsort(x.to_numpy(dtype=float))
+        ax.plot(
+            x.to_numpy(dtype=float)[order],
+            y.to_numpy(dtype=float)[order],
+            linestyle="-",
+            linewidth=1.2,
+            markersize=7,
+            label=str(corner),
+            **style,
+        )
+    ax.set_xlabel("Temperature (°C)")
+    ax.set_ylabel(delay_label)
+    ax.set_title("Temperature vs delay" if block == "LS_UP" else "Temperature vs reset time")
+    ax.grid(True, alpha=0.3)
+    ax.legend(title="Corner", loc="best", frameon=True)
+
+    # --- Panel 3: SEU upset probability by corner ---
+    ax = axes[2]
+    seu_df = block_df
+    if "SEU_state" in block_df.columns:
+        seu_col = block_df["SEU_state"]
+        if seu_col.dtype == object:
+            seu_mask = seu_col.astype(str).str.lower().isin(("true", "1", "yes"))
+        else:
+            seu_mask = seu_col.astype(bool)
+        seu_df = block_df.loc[seu_mask]
+    # Upset probability = 1 − tolerance (tolerance 1.0 → recovered / no lasting upset).
+    bar_corners: list[str] = []
+    bar_probs: list[float] = []
+    bar_colors: list[str] = []
+    for corner, sub in _corner_groups(seu_df if not seu_df.empty else block_df):
+        tol = pd.to_numeric(sub["upset_tolerance"], errors="coerce")
+        valid = tol[np.isfinite(tol)]
+        if valid.empty:
+            continue
+        upset_prob = float(1.0 - valid.mean())
+        bar_corners.append(str(corner))
+        bar_probs.append(upset_prob)
+        bar_colors.append(_CORNER_STYLE.get(corner, {}).get("color", "0.5"))
+    if bar_corners:
+        x_pos = np.arange(len(bar_corners))
+        ax.bar(x_pos, bar_probs, color=bar_colors, edgecolor="0.2", width=0.65)
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels(bar_corners)
+        # Explicit legend handles so corner colors stay documented on bar charts.
+        legend_handles = [
+            plt.Line2D(
+                [0],
+                [0],
+                color=_CORNER_STYLE.get(c, {}).get("color", "0.5"),
+                marker=_CORNER_STYLE.get(c, {}).get("marker", "o"),
+                linestyle="None",
+                markersize=8,
+                label=c,
+            )
+            for c in bar_corners
+        ]
+        ax.legend(handles=legend_handles, title="Corner", loc="best", frameon=True)
+    else:
+        ax.text(0.5, 0.5, "no SEU data", ha="center", va="center", transform=ax.transAxes)
+    ax.set_xlabel("Process corner")
+    ax.set_ylabel("SEU upset probability")
+    ax.set_title("SEU upset probability")
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(True, axis="y", alpha=0.3)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+    return out_path
+
+
+def write_performance_plots(
+    df: pd.DataFrame,
+    reports_dir: Path | str = "reports",
+) -> dict[str, Path]:
+    """Write per-block performance PNGs under *reports_dir*.
+
+    Produces:
+      reports/ls_up_plot.png
+      reports/por_plot.png
+
+    Each figure has three panels — supply vs output voltage, temperature vs
+    delay (reset time for POR), and SEU upset probability — with process-corner
+    legends.
+    """
+    reports_dir = Path(reports_dir)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    # Accept either the raw metrics DataFrame or an already-mapped perf table.
+    if "block" in df.columns and "upset_tolerance" in df.columns:
+        perf = df.copy()
+        if "SEU_state" not in perf.columns and "seu" in perf.columns:
+            perf = metrics_to_perf_dataframe(perf)
+    else:
+        perf = metrics_to_perf_dataframe(df)
+
+    written: dict[str, Path] = {}
+    for block, filename in PERF_PLOT_FILES.items():
+        if "block" in perf.columns:
+            block_df = perf.loc[perf["block"].astype(str).str.upper() == block].copy()
+        else:
+            # Single-block CSV without a block column (reports/*_perf.csv).
+            block_df = perf.copy()
+        out_path = reports_dir / filename
+        written[block] = _plot_block_performance(block_df, block, out_path)
+    return written
+
+
+def write_performance_plots_from_csvs(
+    reports_dir: Path | str = "reports",
+) -> dict[str, Path]:
+    """Load published ``*_perf.csv`` tables and render the PNG plots."""
+    reports_dir = Path(reports_dir)
+    frames: list[pd.DataFrame] = []
+    for block, filename in PERF_CSV_FILES.items():
+        path = reports_dir / filename
+        if not path.is_file():
+            continue
+        part = pd.read_csv(path)
+        part["block"] = block
+        frames.append(part)
+    if not frames:
+        raise FileNotFoundError(
+            f"no performance CSVs found under {reports_dir} "
+            f"(expected {', '.join(PERF_CSV_FILES.values())})"
+        )
+    return write_performance_plots(pd.concat(frames, ignore_index=True), reports_dir)
 
 
 # ---------------------------------------------------------------------------
@@ -1044,6 +1277,16 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="skip writing per-block performance CSVs under --reports",
     )
+    p.add_argument(
+        "--plots-from-csv",
+        action="store_true",
+        help="render reports/*_plot.png from existing reports/*_perf.csv and exit",
+    )
+    p.add_argument(
+        "--no-plots",
+        action="store_true",
+        help="skip writing per-block performance PNGs under --reports",
+    )
     return p
 
 
@@ -1053,6 +1296,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.write_fixtures:
         paths = write_fixture_raw_tree(args.write_fixtures)
         print(f"wrote {len(paths)} fixture .raw files under {args.write_fixtures}")
+        return 0
+
+    if args.plots_from_csv:
+        written = write_performance_plots_from_csvs(args.reports)
+        for block, path in written.items():
+            print(f"wrote {path} [{block}]")
         return 0
 
     if args.smoke:
@@ -1081,6 +1330,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     assert list(check.columns) == PERF_CSV_COLUMNS
                     assert not check.empty
                     print(f"wrote {path} ({len(check)} rows)")
+            if not args.no_plots:
+                plots = write_performance_plots(df, args.reports)
+                for block, path in plots.items():
+                    assert path.is_file() and path.stat().st_size > 0
+                    print(f"wrote {path} [{block}]")
             print("SMOKE_RESULT=PASS")
         return 0
 
@@ -1109,6 +1363,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         for block, path in written.items():
             n = sum(1 for _ in open(path, encoding="utf-8")) - 1
             print(f"wrote {path} ({max(n, 0)} rows) [{block}]")
+    if not args.no_plots:
+        plots = write_performance_plots(df, args.reports)
+        for block, path in plots.items():
+            print(f"wrote {path} [{block}]")
     return 0
 
 
