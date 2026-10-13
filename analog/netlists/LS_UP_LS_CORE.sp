@@ -1,0 +1,8 @@
+.subckt LS_UP_LS_CORE IN INB OUT VDDH VSS
+MN1 X IN VSS VSS nfet_5v W=6 L=0.5
+MN2 Y INB VSS VSS nfet_5v W=6 L=0.5
+MP1 X Y VDDH VDDH pfet_5v W=0.5 L=0.5
+MP2 Y X VDDH VDDH pfet_5v W=0.5 L=0.5
+MPO OUT X VDDH VDDH pfet_5v W=2 L=0.5
+MNO OUT X VSS VSS nfet_5v W=1 L=0.5
+.ends
