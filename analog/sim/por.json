@@ -1,0 +1,125 @@
+{
+ "passed": true,
+ "kind": "por",
+ "subckt": "por",
+ "per_vdd": [
+  {
+   "vdd": 1.4,
+   "label": "por@1.4V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "asserted on ramp-up at VDD=0.8 V",
+     "passed": true,
+     "detail": "POR_N=0.00 V at VDD=0.8 V"
+    },
+    {
+     "name": "released once VDD is up (stays released through hold, full level)",
+     "passed": true,
+     "detail": "POR_N=1.40 V at end of hold (VDD=1.4 V)"
+    },
+    {
+     "name": "re-asserted on ramp-down before VDD falls to 0.8 V",
+     "passed": true,
+     "detail": "re-asserted at VDD=1.10 V"
+    }
+   ],
+   "measurements": {
+    "release_threshold_v": 1.132,
+    "release_time_us": 80.83,
+    "reassert_threshold_v": 1.1,
+    "hysteresis_v": 0.032,
+    "supply_current_at_vmax_uA": 2.279
+   }
+  },
+  {
+   "vdd": 3.3,
+   "label": "por@3.3V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "asserted on ramp-up at VDD=0.8 V",
+     "passed": true,
+     "detail": "POR_N=0.00 V at VDD=0.8 V"
+    },
+    {
+     "name": "released once VDD is up (stays released through hold, full level)",
+     "passed": true,
+     "detail": "POR_N=3.30 V at end of hold (VDD=3.3 V)"
+    },
+    {
+     "name": "re-asserted on ramp-down before VDD falls to 0.8 V",
+     "passed": true,
+     "detail": "re-asserted at VDD=1.09 V"
+    }
+   ],
+   "measurements": {
+    "release_threshold_v": 1.139,
+    "release_time_us": 34.53,
+    "reassert_threshold_v": 1.091,
+    "hysteresis_v": 0.048,
+    "supply_current_at_vmax_uA": 14.531
+   }
+  },
+  {
+   "vdd": 5.5,
+   "label": "por@5.5V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "asserted on ramp-up at VDD=0.8 V",
+     "passed": true,
+     "detail": "POR_N=0.00 V at VDD=0.8 V"
+    },
+    {
+     "name": "released once VDD is up (stays released through hold, full level)",
+     "passed": true,
+     "detail": "POR_N=5.50 V at end of hold (VDD=5.5 V)"
+    },
+    {
+     "name": "re-asserted on ramp-down before VDD falls to 0.8 V",
+     "passed": true,
+     "detail": "re-asserted at VDD=1.08 V"
+    }
+   ],
+   "measurements": {
+    "release_threshold_v": 1.146,
+    "release_time_us": 20.83,
+    "reassert_threshold_v": 1.081,
+    "hysteresis_v": 0.065,
+    "supply_current_at_vmax_uA": 38.99
+   }
+  }
+ ],
+ "notes": "Simulated with sky130 device models (sky130_fd_pr__nfet_g5v0d10v5, sky130_fd_pr__pfet_g5v0d10v5), corner tt, 27 \u00b0C. Pre-layout: no parasitics; one corner and temperature per run (PVT sweeps and Monte Carlo are separate runs).",
+ "log_tail": "",
+ "structural": {
+  "ok": true,
+  "issues": [],
+  "warnings": [],
+  "device_count": 8,
+  "subckts_checked": [
+   "por"
+  ],
+  "ports": [
+   "VDD",
+   "VSS",
+   "POR_N"
+  ]
+ }
+}

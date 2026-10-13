@@ -1,74 +1,30 @@
 {
- "spec": "Project: Apogee RHBD I/O \u2014 real flow v2\n# Project Overview\n\n**Name:** Apogee RHBD I/O \u2013 real flow v2  \n**Description:** Design two radiation\u2011hardened 5\u202fV I/O analog blocks in SkyWater sky130 (g5v0d10v5 devices) for the AP54RHC5942\u2011style RHBD interface chip, together with a top\u2011level I/O cell set and supporting software.\n\n## Core Blocks\n- **LS_UP Level Shifter** \u2013 1.8\u202fV core logic input, 5\u202fV output. Operates across a supply sweep of 1.4\u202fV\u20115.5\u202fV, all PVT corners (ss/tt/ff, \u201355\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C) and must survive SEU injection.\n- **POR Power\u2011On\u2011Reset** \u2013 Holds reset until VDD exceeds a threshold. Implements native and regular Vt detectors with the same PVT coverage as LS_UP.\n\n## Top\u2011Level Integration\n- **TOP_IO** assembles LS_UP and POR and includes top\u2011level DRC/LVS verification.\n\n## Software & Automation\n- Python scripts drive ngspice, generate PVT/SEU tables, plots, and pytest suites.\n- Verilog glue (reset combiner) and an iverilog testbench.\n- Verilog\u2011A behavioral models for LS_UP and POR.\n- End\u2011to\u2011end regression/sign\u2011off automation using Make + pytest.\n\n## Workflow Rules\n- **Simulation stories** must finish before **layout stories** for each block (finish\u2011to\u2011start).\n- **Coding stories** depend on the block stories whose results they consume.\n- Scope is limited to LS_UP, POR, and TOP_IO \u2013 no PCB/KiCad, no separate documentation/QA/release epics.\n\n## Repository Layout\n- `analog/` \u2013 schematic and layout files.\n- `scripts/` \u2013 Python characterization and automation.\n- `rtl/` \u2013 Verilog RTL glue.\n- `models/` \u2013 Verilog\u2011A behavioral models.\n\nAll work is performed by AI\u2011driven employees, emphasizing reproducible, automated flows.\nInstructions: <p>All work is done by AI Employees. Design data lives in the project repository under analog/; code under scripts/, rtl/, models/.</p><ul><li><p>Simulation stories come before layout stories of the same block (finish-to-start).</p></li><li><p>Coding stories depend on the block stories whose results they use.</p></li><li><p>Keep scope to LS_UP, POR and the top-level; no PCB / KiCad evaluation board, no separate documentation/QA/release epic.</p></li></ul><p></p>\n\nEpic: Analog Block Simulation and Characterization\nDevelop complete SPICE netlists for the LS_UP level\u2011shifter and POR reset block, run exhaustive ngspice simulations covering the full 1.4\u20115.5\u202fV supply range, ss/tt/ff process corners, -55\u202f\u00b0C to 125\u202f\u00b0C temperature sweep, and SEU injection scenarios. Collect logs, waveforms, and auto\u2011generate PVT/SEU performance tables and plots. The deliverable provides the authoritative characterization data used by downstream layout, behavioral modeling, and automation pipelines.\nExpectations: All simulation runs finish without errors, coverage tables are generated, and data passes sanity checks (>99\u202f% functional coverage).\n\nStory: LS_UP and POR SPICE Netlist and Simulation Deck Development\nCreate transistor\u2011level Xschem netlists for the LS_UP level\u2011shifter and POR reset block, build reusable ngspice deck templates that iterate over the full 1.4\u20115.5\u202fV supply range, ss/tt/ff process corners, -55\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C temperatures and SEU injection states, and execute the complete simulation matrix. All artifacts are stored under analog/simulation/ with version tagging. This work provides the authoritative characterization data for downstream layout, behavioral modeling and automation pipelines.",
+ "spec": "Project: Apogee RHBD I/O \u2014 real flow v2\n# Project Overview\n\n**Name:** Apogee RHBD I/O \u2013 real flow v2  \n**Description:** Design two radiation\u2011hardened 5\u202fV I/O analog blocks in SkyWater sky130 (g5v0d10v5 devices) for the AP54RHC5942\u2011style RHBD interface chip, together with a top\u2011level I/O cell set and supporting software.\n\n## Core Blocks\n- **LS_UP Level Shifter** \u2013 1.8\u202fV core logic input, 5\u202fV output. Operates across a supply sweep of 1.4\u202fV\u20115.5\u202fV, all PVT corners (ss/tt/ff, \u201355\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C) and must survive SEU injection.\n- **POR Power\u2011On\u2011Reset** \u2013 Holds reset until VDD exceeds a threshold. Implements native and regular Vt detectors with the same PVT coverage as LS_UP.\n\n## Top\u2011Level Integration\n- **TOP_IO** assembles LS_UP and POR and includes top\u2011level DRC/LVS verification.\n\n## Software & Automation\n- Python scripts drive ngspice, generate PVT/SEU tables, plots, and pytest suites.\n- Verilog glue (reset combiner) and an iverilog testbench.\n- Verilog\u2011A behavioral models for LS_UP and POR.\n- End\u2011to\u2011end regression/sign\u2011off automation using Make + pytest.\n\n## Workflow Rules\n- **Simulation stories** must finish before **layout stories** for each block (finish\u2011to\u2011start).\n- **Coding stories** depend on the block stories whose results they consume.\n- Scope is limited to LS_UP, POR, and TOP_IO \u2013 no PCB/KiCad, no separate documentation/QA/release epics.\n\n## Repository Layout\n- `analog/` \u2013 schematic and layout files.\n- `scripts/` \u2013 Python characterization and automation.\n- `rtl/` \u2013 Verilog RTL glue.\n- `models/` \u2013 Verilog\u2011A behavioral models.\n\nAll work is performed by AI\u2011driven employees, emphasizing reproducible, automated flows.\nInstructions: <p>All work is done by AI Employees. Design data lives in the project repository under analog/; code under scripts/, rtl/, models/.</p><ul><li><p>Simulation stories come before layout stories of the same block (finish-to-start).</p></li><li><p>Coding stories depend on the block stories whose results they use.</p></li><li><p>Keep scope to LS_UP, POR and the top-level; no PCB / KiCad evaluation board, no separate documentation/QA/release epic.</p></li></ul><p></p>\n\nEpic: Analog Layout and Physical Verification\nTranslate the verified LS_UP and POR schematics into full GDSII layout cells using Magic, apply radiation\u2011hardening layout rules, and integrate both cells into the TOP_IO top\u2011level layout. Run complete DRC and LVS checks (Magic + Netgen) to ensure zero errors, and deliver tape\u2011out\u2011ready GDS files and verification reports.\nExpectations: Zero DRC errors and \u2264\u202f1 LVS mismatch for each block, satisfying KPI\u202f4.\n\nStory: POR Layout Cell Creation and Verification\nImplement the GDSII layout for the Power\u2011On\u2011Reset (POR) block using Magic, adhering to radiation\u2011hardening guidelines. Run DRC and LVS against the schematic, resolve any issues, and produce clean layout artifacts and verification documentation.",
  "plan": {
-  "title": "LS_UP and POR Simulation Matrix Execution",
-  "summary": "Plan to run full simulation matrix (PVT corners and SEU injection) for existing LS_UP level shifter and POR cells, capture logs and waveforms.",
+  "title": "POR Layout Cell Creation and Verification",
+  "summary": "Create the layout for the POR cell, run DRC/LVS, and document the results.",
   "deliverables": [],
   "phases": [
    {
-    "id": "task-c543cca2-e0e6-49cc-b0c8-723bef6cff84",
-    "name": "Execute full simulation matrix",
-    "goal": "re-check the existing cell(s): simulation, PVT and SEU checks only. Do NOT change netlists unless they are missing, and do NOT plan any layout.",
+    "id": "task-3de2ca72-70a1-4652-8e78-4019ef68f478",
+    "name": "Create POR layout cell in Magic",
+    "goal": "lay out the cell(s): generate the layout of each leaf cell (assemble_top for a hierarchical/top cell), which runs DRC and LVS. Do NOT plan new simulations.",
     "steps": [
-     {
-      "action": "import_reference_cell",
-      "args": {
-       "file": "level_shifter.sp"
-      },
-      "description": "Import verified LS_UP level shifter reference cell.",
-      "id": "s1_import_reference_cell_LS_UP",
-      "target": "LS_UP"
-     },
      {
       "action": "import_reference_cell",
       "args": {
        "file": "por.sp"
       },
-      "description": "Import verified POR reference cell.",
-      "id": "s2_import_reference_cell_POR",
-      "target": "POR"
+      "description": "Import verified POR schematic as cell",
+      "id": "s1_import_reference_cell_por",
+      "target": "por"
      },
      {
-      "action": "simulate_cell",
-      "args": {},
-      "description": "Functional simulation for LS_UP across supply range and corners.",
-      "id": "s3_simulate_cell_LS_UP",
-      "target": "LS_UP"
-     },
-     {
-      "action": "seu_check",
-      "args": {},
-      "description": "SEU injection check for LS_UP.",
-      "id": "s4_seu_check_LS_UP",
-      "target": "LS_UP"
-     },
-     {
-      "action": "pvt_check",
-      "args": {},
-      "description": "PVT corner check for LS_UP.",
-      "id": "s5_pvt_check_LS_UP",
-      "target": "LS_UP"
-     },
-     {
-      "action": "simulate_cell",
-      "args": {},
-      "description": "Functional simulation for POR across supply range and corners.",
-      "id": "s6_simulate_cell_POR",
-      "target": "POR"
-     },
-     {
-      "action": "seu_check",
-      "args": {},
-      "description": "SEU injection check for POR.",
-      "id": "s7_seu_check_POR",
-      "target": "POR"
-     },
-     {
-      "action": "pvt_check",
-      "args": {},
-      "description": "PVT corner check for POR.",
-      "id": "s8_pvt_check_POR",
-      "target": "POR"
+      "action": "generate_cell_layout",
+      "description": "Generate Magic layout for POR cell, apply RHBD rules, export GDS",
+      "id": "s2_generate_cell_layout_por",
+      "target": "por",
+      "args": {}
      }
     ],
     "deliverables": []
@@ -1704,6 +1660,98 @@
     "models": "sky130A 5 V devices (g5v0d10v5, Magic PCells)",
     "time": "2026-10-13 11:34:30"
    }
+  },
+  "por": {
+   "kind": "por",
+   "netlist": ".subckt por VDD VSS POR_N\nMS B VDD VSS VSS nch W=0.9 L=4\nML0 VDD VDD B VSS nnat W=1 L=25\nMH B VDD h VSS nch W=0.42 L=32\nMHS h POR_N VSS VSS nch W=1 L=0.5\nMCB VDD B VDD VDD pch W=2 L=2\nMP2 POR_N B VDD VDD pch W=2 L=0.5\nMN2 POR_N B VSS VSS nnat W=1 L=25\nMCO VSS POR_N VSS VSS nch W=4 L=4\n.ends",
+   "ports": {
+    "VDD": "VDD",
+    "VSS": "VSS",
+    "POR_N": "POR_N"
+   },
+   "deps": [],
+   "subckt_ports": [
+    "VDD",
+    "VSS",
+    "POR_N"
+   ],
+   "devices": 8,
+   "instances": 0,
+   "structural": {
+    "ok": true,
+    "issues": [],
+    "warnings": [],
+    "device_count": 8,
+    "subckts_checked": [
+     "por"
+    ],
+    "ports": [
+     "VDD",
+     "VSS",
+     "POR_N"
+    ]
+   },
+   "sim": {
+    "passed": true,
+    "per_vdd": [
+     {
+      "vdd": 1.4,
+      "label": "por@1.4V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "release_threshold_v": 1.132,
+       "release_time_us": 80.83,
+       "reassert_threshold_v": 1.1,
+       "hysteresis_v": 0.032,
+       "supply_current_at_vmax_uA": 2.279
+      }
+     },
+     {
+      "vdd": 3.3,
+      "label": "por@3.3V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "release_threshold_v": 1.139,
+       "release_time_us": 34.53,
+       "reassert_threshold_v": 1.091,
+       "hysteresis_v": 0.048,
+       "supply_current_at_vmax_uA": 14.531
+      }
+     },
+     {
+      "vdd": 5.5,
+      "label": "por@5.5V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "release_threshold_v": 1.146,
+       "release_time_us": 20.83,
+       "reassert_threshold_v": 1.081,
+       "hysteresis_v": 0.065,
+       "supply_current_at_vmax_uA": 38.99
+      }
+     }
+    ],
+    "notes": "Simulated with sky130 device models (sky130_fd_pr__nfet_g5v0d10v5, sky130_fd_pr__pfet_g5v0d10v5), corner tt, 27 \u00b0C. Pre-layout: no parasitics; one corner and temperature per run (PVT sweeps and Monte Carlo are separate runs).",
+    "log_tail": ""
+   },
+   "layout": {
+    "gds": "layout/por.gds",
+    "png": "layout/por.png",
+    "width_um": 117.98,
+    "height_um": 10.19,
+    "drc_violations": 0,
+    "drc": [],
+    "lvs_match": true,
+    "lvs_issues": "",
+    "unconnected_ports": [],
+    "signoff": "Magic DRC + Netgen LVS (sky130A)",
+    "process": "sky130A 5 V devices (g5v0d10v5, Magic PCells)"
+   },
+   "revision": 1,
+   "source": "reference por.sp:POR"
   }
  },
  "top": null,
@@ -1723,6 +1771,10 @@
   {
    "time": "11:44:01",
    "event": "phase task-c543cca2-e0e6-49cc-b0c8-723bef6cff84 done, waiting for review"
+  },
+  {
+   "time": "11:56:28",
+   "event": "phase task-3de2ca72-70a1-4652-8e78-4019ef68f478 done, waiting for review"
   }
  ],
  "plan_status": "approved"
