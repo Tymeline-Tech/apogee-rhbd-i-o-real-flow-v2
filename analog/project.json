@@ -1,53 +1,74 @@
 {
  "spec": "Project: Apogee RHBD I/O \u2014 real flow v2\n# Project Overview\n\n**Name:** Apogee RHBD I/O \u2013 real flow v2  \n**Description:** Design two radiation\u2011hardened 5\u202fV I/O analog blocks in SkyWater sky130 (g5v0d10v5 devices) for the AP54RHC5942\u2011style RHBD interface chip, together with a top\u2011level I/O cell set and supporting software.\n\n## Core Blocks\n- **LS_UP Level Shifter** \u2013 1.8\u202fV core logic input, 5\u202fV output. Operates across a supply sweep of 1.4\u202fV\u20115.5\u202fV, all PVT corners (ss/tt/ff, \u201355\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C) and must survive SEU injection.\n- **POR Power\u2011On\u2011Reset** \u2013 Holds reset until VDD exceeds a threshold. Implements native and regular Vt detectors with the same PVT coverage as LS_UP.\n\n## Top\u2011Level Integration\n- **TOP_IO** assembles LS_UP and POR and includes top\u2011level DRC/LVS verification.\n\n## Software & Automation\n- Python scripts drive ngspice, generate PVT/SEU tables, plots, and pytest suites.\n- Verilog glue (reset combiner) and an iverilog testbench.\n- Verilog\u2011A behavioral models for LS_UP and POR.\n- End\u2011to\u2011end regression/sign\u2011off automation using Make + pytest.\n\n## Workflow Rules\n- **Simulation stories** must finish before **layout stories** for each block (finish\u2011to\u2011start).\n- **Coding stories** depend on the block stories whose results they consume.\n- Scope is limited to LS_UP, POR, and TOP_IO \u2013 no PCB/KiCad, no separate documentation/QA/release epics.\n\n## Repository Layout\n- `analog/` \u2013 schematic and layout files.\n- `scripts/` \u2013 Python characterization and automation.\n- `rtl/` \u2013 Verilog RTL glue.\n- `models/` \u2013 Verilog\u2011A behavioral models.\n\nAll work is performed by AI\u2011driven employees, emphasizing reproducible, automated flows.\nInstructions: <p>All work is done by AI Employees. Design data lives in the project repository under analog/; code under scripts/, rtl/, models/.</p><ul><li><p>Simulation stories come before layout stories of the same block (finish-to-start).</p></li><li><p>Coding stories depend on the block stories whose results they use.</p></li><li><p>Keep scope to LS_UP, POR and the top-level; no PCB / KiCad evaluation board, no separate documentation/QA/release epic.</p></li></ul><p></p>\n\nEpic: Analog Block Simulation and Characterization\nDevelop complete SPICE netlists for the LS_UP level\u2011shifter and POR reset block, run exhaustive ngspice simulations covering the full 1.4\u20115.5\u202fV supply range, ss/tt/ff process corners, -55\u202f\u00b0C to 125\u202f\u00b0C temperature sweep, and SEU injection scenarios. Collect logs, waveforms, and auto\u2011generate PVT/SEU performance tables and plots. The deliverable provides the authoritative characterization data used by downstream layout, behavioral modeling, and automation pipelines.\nExpectations: All simulation runs finish without errors, coverage tables are generated, and data passes sanity checks (>99\u202f% functional coverage).\n\nStory: LS_UP and POR SPICE Netlist and Simulation Deck Development\nCreate transistor\u2011level Xschem netlists for the LS_UP level\u2011shifter and POR reset block, build reusable ngspice deck templates that iterate over the full 1.4\u20115.5\u202fV supply range, ss/tt/ff process corners, -55\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C temperatures and SEU injection states, and execute the complete simulation matrix. All artifacts are stored under analog/simulation/ with version tagging. This work provides the authoritative characterization data for downstream layout, behavioral modeling and automation pipelines.",
  "plan": {
-  "title": "LS_UP and POR SPICE Netlist and Simulation Deck Development",
-  "summary": "Plan to import LS_UP and POR reference cells and create a reusable ngspice deck that loops over CSV entries for supply, corner, temperature, and SEU flag.",
+  "title": "LS_UP and POR Simulation Matrix Execution",
+  "summary": "Plan to run full simulation matrix (PVT corners and SEU injection) for existing LS_UP level shifter and POR cells, capture logs and waveforms.",
   "deliverables": [],
   "phases": [
    {
-    "id": "task-d26957ab-8f2a-4df6-b1a1-6336d796e3fb",
-    "name": "Create parameterized ngspice deck",
-    "goal": "design the circuit: write or import the cell netlist(s), simulate them at every supply, and run the PVT check (and the SEU check for storage cells). Do NOT plan any layout.",
+    "id": "task-c543cca2-e0e6-49cc-b0c8-723bef6cff84",
+    "name": "Execute full simulation matrix",
+    "goal": "re-check the existing cell(s): simulation, PVT and SEU checks only. Do NOT change netlists unless they are missing, and do NOT plan any layout.",
     "steps": [
-     {
-      "action": "import_reference_cell",
-      "args": {
-       "file": "por.sp"
-      },
-      "description": "Import POR",
-      "id": "s1_import_reference_cell_POR",
-      "target": "POR"
-     },
-     {
-      "action": "simulate_cell",
-      "args": {},
-      "description": "Run POR simulation",
-      "id": "s2_simulate_cell_POR",
-      "target": "POR"
-     },
      {
       "action": "import_reference_cell",
       "args": {
        "file": "level_shifter.sp"
       },
-      "description": "Import LS_UP cell",
-      "id": "s3_import_reference_cell_LS_UP",
+      "description": "Import verified LS_UP level shifter reference cell.",
+      "id": "s1_import_reference_cell_LS_UP",
+      "target": "LS_UP"
+     },
+     {
+      "action": "import_reference_cell",
+      "args": {
+       "file": "por.sp"
+      },
+      "description": "Import verified POR reference cell.",
+      "id": "s2_import_reference_cell_POR",
+      "target": "POR"
+     },
+     {
+      "action": "simulate_cell",
+      "args": {},
+      "description": "Functional simulation for LS_UP across supply range and corners.",
+      "id": "s3_simulate_cell_LS_UP",
+      "target": "LS_UP"
+     },
+     {
+      "action": "seu_check",
+      "args": {},
+      "description": "SEU injection check for LS_UP.",
+      "id": "s4_seu_check_LS_UP",
+      "target": "LS_UP"
+     },
+     {
+      "action": "pvt_check",
+      "args": {},
+      "description": "PVT corner check for LS_UP.",
+      "id": "s5_pvt_check_LS_UP",
       "target": "LS_UP"
      },
      {
       "action": "simulate_cell",
       "args": {},
-      "description": "Run LS_UP sim",
-      "id": "s4_simulate_cell_LS_UP",
-      "target": "LS_UP"
+      "description": "Functional simulation for POR across supply range and corners.",
+      "id": "s6_simulate_cell_POR",
+      "target": "POR"
      },
      {
-      "action": "write_document",
+      "action": "seu_check",
       "args": {},
-      "description": "Create deck doc",
-      "id": "s5_write_document_run_spice_deck",
-      "target": "run_spice_deck"
+      "description": "SEU injection check for POR.",
+      "id": "s7_seu_check_POR",
+      "target": "POR"
+     },
+     {
+      "action": "pvt_check",
+      "args": {},
+      "description": "PVT corner check for POR.",
+      "id": "s8_pvt_check_POR",
+      "target": "POR"
      }
     ],
     "deliverables": []
@@ -412,7 +433,791 @@
    },
    "layout": null,
    "revision": 1,
-   "source": "reference level_shifter.sp:LS_UP"
+   "source": "reference level_shifter.sp:LS_UP",
+   "pvt": {
+    "corners": [
+     "tt",
+     "ff",
+     "ss"
+    ],
+    "temps": [
+     -55,
+     25,
+     125
+    ],
+    "grid": [
+     {
+      "corner": "tt",
+      "temp": -55,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.3
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.021,
+         "static_I_vddh_in1_nA": 0.018,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.353
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.209
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.021,
+         "static_I_vddh_in1_nA": 0.018,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.227
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.043
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.021,
+         "static_I_vddh_in1_nA": 0.018,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.047
+        }
+       }
+      ]
+     },
+     {
+      "corner": "tt",
+      "temp": 25,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.016,
+         "static_I_vddh_in1_nA": 0.02,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.3
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.034,
+         "static_I_vddh_in1_nA": 0.039,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.349
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.016,
+         "static_I_vddh_in1_nA": 0.02,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.213
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.034,
+         "static_I_vddh_in1_nA": 0.039,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.228
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.016,
+         "static_I_vddh_in1_nA": 0.02,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.053
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.034,
+         "static_I_vddh_in1_nA": 0.039,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.055
+        }
+       }
+      ]
+     },
+     {
+      "corner": "tt",
+      "temp": 125,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 1.125,
+         "static_I_vddh_in1_nA": 1.552,
+         "static_I_vddl_in1_nA": 0.007,
+         "tpd_in_rise_ns": 0.294
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 2.347,
+         "static_I_vddh_in1_nA": 3.186,
+         "static_I_vddl_in1_nA": 0.007,
+         "tpd_in_rise_ns": 0.346
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 1.125,
+         "static_I_vddh_in1_nA": 1.552,
+         "static_I_vddl_in1_nA": 0.008,
+         "tpd_in_rise_ns": 0.217
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 2.347,
+         "static_I_vddh_in1_nA": 3.186,
+         "static_I_vddl_in1_nA": 0.008,
+         "tpd_in_rise_ns": 0.234
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 1.125,
+         "static_I_vddh_in1_nA": 1.552,
+         "static_I_vddl_in1_nA": 0.016,
+         "tpd_in_rise_ns": 0.065
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 2.347,
+         "static_I_vddh_in1_nA": 3.186,
+         "static_I_vddl_in1_nA": 0.016,
+         "tpd_in_rise_ns": 0.065
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ff",
+      "temp": -55,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.257
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.024,
+         "static_I_vddh_in1_nA": 0.019,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.303
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.175
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.024,
+         "static_I_vddh_in1_nA": 0.019,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.199
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.021
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.024,
+         "static_I_vddh_in1_nA": 0.019,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.029
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ff",
+      "temp": 25,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.029,
+         "static_I_vddh_in1_nA": 0.067,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.253
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.067,
+         "static_I_vddh_in1_nA": 0.146,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.301
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.029,
+         "static_I_vddh_in1_nA": 0.067,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.178
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.067,
+         "static_I_vddh_in1_nA": 0.146,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.201
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.029,
+         "static_I_vddh_in1_nA": 0.067,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.027
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.067,
+         "static_I_vddh_in1_nA": 0.146,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.033
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ff",
+      "temp": 125,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 3.018,
+         "static_I_vddh_in1_nA": 5.443,
+         "static_I_vddl_in1_nA": 0.039,
+         "tpd_in_rise_ns": 0.25
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 6.653,
+         "static_I_vddh_in1_nA": 11.561,
+         "static_I_vddl_in1_nA": 0.039,
+         "tpd_in_rise_ns": 0.3
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 3.018,
+         "static_I_vddh_in1_nA": 5.443,
+         "static_I_vddl_in1_nA": 0.049,
+         "tpd_in_rise_ns": 0.178
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 6.653,
+         "static_I_vddh_in1_nA": 11.561,
+         "static_I_vddl_in1_nA": 0.049,
+         "tpd_in_rise_ns": 0.204
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 3.018,
+         "static_I_vddh_in1_nA": 5.443,
+         "static_I_vddl_in1_nA": 0.103,
+         "tpd_in_rise_ns": 0.036
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 6.653,
+         "static_I_vddh_in1_nA": 11.561,
+         "static_I_vddl_in1_nA": 0.103,
+         "tpd_in_rise_ns": 0.041
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ss",
+      "temp": -55,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.35
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.019,
+         "static_I_vddh_in1_nA": 0.017,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.426
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.243
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.019,
+         "static_I_vddh_in1_nA": 0.017,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.252
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.01,
+         "static_I_vddh_in1_nA": 0.01,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.07
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.019,
+         "static_I_vddh_in1_nA": 0.017,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.067
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ss",
+      "temp": 25,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.012,
+         "static_I_vddh_in1_nA": 0.012,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.351
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.023,
+         "static_I_vddh_in1_nA": 0.022,
+         "static_I_vddl_in1_nA": 0.001,
+         "tpd_in_rise_ns": 0.415
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.012,
+         "static_I_vddh_in1_nA": 0.012,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.252
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.023,
+         "static_I_vddh_in1_nA": 0.022,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.258
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.012,
+         "static_I_vddh_in1_nA": 0.012,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.085
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.023,
+         "static_I_vddh_in1_nA": 0.022,
+         "static_I_vddl_in1_nA": 0.003,
+         "tpd_in_rise_ns": 0.077
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ss",
+      "temp": 125,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.461,
+         "static_I_vddh_in1_nA": 0.527,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.354
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.4,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.92,
+         "static_I_vddh_in1_nA": 1.046,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.406
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.461,
+         "static_I_vddh_in1_nA": 0.527,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.257
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 1.8,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.92,
+         "static_I_vddh_in1_nA": 1.046,
+         "static_I_vddl_in1_nA": 0.002,
+         "tpd_in_rise_ns": 0.262
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 3.3,
+         "static_I_vddh_in0_nA": 0.461,
+         "static_I_vddh_in1_nA": 0.527,
+         "static_I_vddl_in1_nA": 0.005,
+         "tpd_in_rise_ns": 0.099
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "vddl": 3.3,
+         "vddh": 5.5,
+         "static_I_vddh_in0_nA": 0.92,
+         "static_I_vddh_in1_nA": 1.046,
+         "static_I_vddl_in1_nA": 0.005,
+         "tpd_in_rise_ns": 0.09
+        }
+       }
+      ]
+     }
+    ],
+    "passed": true,
+    "failed_points": [],
+    "skipped_points": [],
+    "models": "sky130A 5 V devices (g5v0d10v5, Magic PCells)",
+    "time": "2026-10-13 11:44:01"
+   }
   },
   "POR": {
    "kind": "por",
@@ -914,6 +1719,10 @@
   {
    "time": "11:38:09",
    "event": "phase task-d26957ab-8f2a-4df6-b1a1-6336d796e3fb done, waiting for review"
+  },
+  {
+   "time": "11:44:01",
+   "event": "phase task-c543cca2-e0e6-49cc-b0c8-723bef6cff84 done, waiting for review"
   }
  ],
  "plan_status": "approved"
