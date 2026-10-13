@@ -1,34 +1,61 @@
 {
  "spec": "Project: Apogee RHBD I/O \u2014 real flow v2\n# Project Overview\n\n**Name:** Apogee RHBD I/O \u2013 real flow v2  \n**Description:** Design two radiation\u2011hardened 5\u202fV I/O analog blocks in SkyWater sky130 (g5v0d10v5 devices) for the AP54RHC5942\u2011style RHBD interface chip, together with a top\u2011level I/O cell set and supporting software.\n\n## Core Blocks\n- **LS_UP Level Shifter** \u2013 1.8\u202fV core logic input, 5\u202fV output. Operates across a supply sweep of 1.4\u202fV\u20115.5\u202fV, all PVT corners (ss/tt/ff, \u201355\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C) and must survive SEU injection.\n- **POR Power\u2011On\u2011Reset** \u2013 Holds reset until VDD exceeds a threshold. Implements native and regular Vt detectors with the same PVT coverage as LS_UP.\n\n## Top\u2011Level Integration\n- **TOP_IO** assembles LS_UP and POR and includes top\u2011level DRC/LVS verification.\n\n## Software & Automation\n- Python scripts drive ngspice, generate PVT/SEU tables, plots, and pytest suites.\n- Verilog glue (reset combiner) and an iverilog testbench.\n- Verilog\u2011A behavioral models for LS_UP and POR.\n- End\u2011to\u2011end regression/sign\u2011off automation using Make + pytest.\n\n## Workflow Rules\n- **Simulation stories** must finish before **layout stories** for each block (finish\u2011to\u2011start).\n- **Coding stories** depend on the block stories whose results they consume.\n- Scope is limited to LS_UP, POR, and TOP_IO \u2013 no PCB/KiCad, no separate documentation/QA/release epics.\n\n## Repository Layout\n- `analog/` \u2013 schematic and layout files.\n- `scripts/` \u2013 Python characterization and automation.\n- `rtl/` \u2013 Verilog RTL glue.\n- `models/` \u2013 Verilog\u2011A behavioral models.\n\nAll work is performed by AI\u2011driven employees, emphasizing reproducible, automated flows.\nInstructions: <p>All work is done by AI Employees. Design data lives in the project repository under analog/; code under scripts/, rtl/, models/.</p><ul><li><p>Simulation stories come before layout stories of the same block (finish-to-start).</p></li><li><p>Coding stories depend on the block stories whose results they use.</p></li><li><p>Keep scope to LS_UP, POR and the top-level; no PCB / KiCad evaluation board, no separate documentation/QA/release epic.</p></li></ul><p></p>\n\nEpic: Analog Layout and Physical Verification\nTranslate the verified LS_UP and POR schematics into full GDSII layout cells using Magic, apply radiation\u2011hardening layout rules, and integrate both cells into the TOP_IO top\u2011level layout. Run complete DRC and LVS checks (Magic + Netgen) to ensure zero errors, and deliver tape\u2011out\u2011ready GDS files and verification reports.\nExpectations: Zero DRC errors and \u2264\u202f1 LVS mismatch for each block, satisfying KPI\u202f4.\n\nStory: TOP_IO Top\u2011Level Integration, DRC/LVS and Tape\u2011out Release\nAssemble the LS_UP and POR GDS cells into the TOP_IO top\u2011level layout, route analog signals, add required decoupling structures, and execute full top\u2011level DRC and LVS checks. Package the final GDS, verification reports, and release notes for tape\u2011out.",
  "plan": {
-  "title": "TOP_IO Layout DRC Execution",
-  "summary": "Run DRC on TOP_IO layout and produce a report.",
+  "title": "TOP_IO LVS Verification Plan",
+  "summary": "Import LS_UP and POR reference cells, run simulations, PVT and SEU checks, then run Netgen LVS between TOP_IO layout and schematic and produce a report.",
   "deliverables": [],
   "phases": [
    {
-    "id": "task-dbb4b38c-3f0a-4a6a-83cd-302265efc941",
-    "name": "Run DRC on TOP_IO layout",
+    "id": "task-46ff19e8-a2ec-4893-8d26-5eb17568475d",
+    "name": "Run LVS between TOP_IO layout and schematic",
     "goal": "re-check the existing cell(s): simulation, PVT and SEU checks only. Do NOT change netlists unless they are missing, and do NOT plan any layout.",
     "steps": [
      {
+      "action": "import_reference_cell",
+      "args": {
+       "file": "level_shifter.sp"
+      },
+      "description": "Import LS_UP level shifter",
+      "id": "s1_import_reference_cell_LS_UP",
+      "target": "LS_UP"
+     },
+     {
+      "action": "import_reference_cell",
+      "args": {
+       "file": "por.sp"
+      },
+      "description": "Import POR power\u2011on reset",
+      "id": "s2_import_reference_cell_POR",
+      "target": "POR"
+     },
+     {
+      "action": "import_reference_cell",
+      "args": {
+       "file": "rst_comb.sp"
+      },
+      "description": "Import reset\u2011combine cell",
+      "id": "s3_import_reference_cell_RST_COMB",
+      "target": "RST_COMB"
+     },
+     {
       "action": "write_cell_netlist",
       "args": {},
-      "description": "Write minimal netlist for TOP_IO",
-      "id": "s1_write_cell_netlist_TOP_IO",
+      "description": "Create TOP_IO netlist",
+      "id": "s4_write_cell_netlist_TOP_IO",
       "target": "TOP_IO"
      },
      {
       "action": "simulate_cell",
       "args": {},
       "description": "Run functional simulation of TOP_IO",
-      "id": "s2_simulate_cell_TOP_IO",
+      "id": "s5_simulate_cell_TOP_IO",
       "target": "TOP_IO"
      },
      {
       "action": "pvt_check",
       "target": "TOP_IO",
       "description": "TOP_IO at every corner and temperature",
-      "id": "s3_pvt_check_TOP_IO",
+      "id": "s6_pvt_check_TOP_IO",
       "args": {}
      }
     ],
@@ -1858,6 +1885,197 @@
     "process": "sky130A 5 V devices (g5v0d10v5, Magic PCells)"
    },
    "revision": 9
+  },
+  "RST_COMB_RC_NAND2": {
+   "kind": "nand2",
+   "netlist": ".subckt RST_COMB_RC_NAND2 A B Y VDD VSS\nMP1 Y A VDD VDD pch W=1 L=0.5\nMP2 Y B VDD VDD pch W=1 L=0.5\nMN1 Y A n1 VSS nch W=1 L=0.5\nMN2 n1 B VSS VSS nch W=1 L=0.5\n.ends",
+   "ports": {
+    "A": "A",
+    "B": "B",
+    "OUT": "Y",
+    "VDD": "VDD",
+    "VSS": "VSS"
+   },
+   "deps": [],
+   "subckt_ports": [
+    "A",
+    "B",
+    "Y",
+    "VDD",
+    "VSS"
+   ],
+   "devices": 4,
+   "instances": 0,
+   "structural": {
+    "ok": true,
+    "issues": [],
+    "warnings": [],
+    "device_count": 4,
+    "subckts_checked": [
+     "RST_COMB_RC_NAND2"
+    ],
+    "ports": [
+     "A",
+     "B",
+     "Y",
+     "VDD",
+     "VSS"
+    ]
+   },
+   "sim": {
+    "passed": true,
+    "per_vdd": [
+     {
+      "vdd": 1.4,
+      "label": "nand2@1.4V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "avg_supply_current_uA": 0.039
+      }
+     },
+     {
+      "vdd": 3.3,
+      "label": "nand2@3.3V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "avg_supply_current_uA": 0.099
+      }
+     },
+     {
+      "vdd": 5.5,
+      "label": "nand2@5.5V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "avg_supply_current_uA": 0.254
+      }
+     }
+    ],
+    "notes": "Simulated with sky130 device models (sky130_fd_pr__nfet_g5v0d10v5, sky130_fd_pr__pfet_g5v0d10v5), corner tt, 27 \u00b0C. Pre-layout: no parasitics; one corner and temperature per run (PVT sweeps and Monte Carlo are separate runs).",
+    "log_tail": ""
+   },
+   "layout": null,
+   "revision": 1,
+   "source": "reference rst_comb.sp:RC_NAND2"
+  },
+  "RST_COMB_RC_INV": {
+   "kind": "inv",
+   "netlist": ".subckt RST_COMB_RC_INV A Y VDD VSS\nMP Y A VDD VDD pch W=1 L=0.5\nMN Y A VSS VSS nch W=0.5 L=0.5\n.ends",
+   "ports": {
+    "IN": "A",
+    "OUT": "Y",
+    "VDD": "VDD",
+    "VSS": "VSS"
+   },
+   "deps": [],
+   "subckt_ports": [
+    "A",
+    "Y",
+    "VDD",
+    "VSS"
+   ],
+   "devices": 2,
+   "instances": 0,
+   "structural": {
+    "ok": true,
+    "issues": [],
+    "warnings": [],
+    "device_count": 2,
+    "subckts_checked": [
+     "RST_COMB_RC_INV"
+    ],
+    "ports": [
+     "A",
+     "Y",
+     "VDD",
+     "VSS"
+    ]
+   },
+   "sim": {
+    "passed": true,
+    "per_vdd": [
+     {
+      "vdd": 1.4,
+      "label": "inv@1.4V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "tpd_in_rise_ns": 0.461,
+       "tpd_in_fall_ns": 0.772,
+       "avg_supply_current_uA": 0.056
+      }
+     },
+     {
+      "vdd": 3.3,
+      "label": "inv@3.3V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "tpd_in_rise_ns": 0.178,
+       "tpd_in_fall_ns": 0.226,
+       "avg_supply_current_uA": 0.138
+      }
+     },
+     {
+      "vdd": 5.5,
+      "label": "inv@5.5V",
+      "passed": true,
+      "failed_checks": [],
+      "measurements": {
+       "tpd_in_rise_ns": 0.13,
+       "tpd_in_fall_ns": 0.162,
+       "avg_supply_current_uA": 0.311
+      }
+     }
+    ],
+    "notes": "Simulated with sky130 device models (sky130_fd_pr__nfet_g5v0d10v5, sky130_fd_pr__pfet_g5v0d10v5), corner tt, 27 \u00b0C. Pre-layout: no parasitics; one corner and temperature per run (PVT sweeps and Monte Carlo are separate runs).",
+    "log_tail": ""
+   },
+   "layout": null,
+   "revision": 1,
+   "source": "reference rst_comb.sp:RC_INV"
+  },
+  "RST_COMB": {
+   "kind": "custom",
+   "netlist": ".subckt RST_COMB RESET_N POR_N RN VDD VSS\nXN RESET_N POR_N rnb VDD VSS RST_COMB_RC_NAND2\nXI rnb RN VDD VSS RST_COMB_RC_INV\n.ends",
+   "ports": {},
+   "deps": [
+    "RST_COMB_RC_INV",
+    "RST_COMB_RC_NAND2"
+   ],
+   "subckt_ports": [
+    "RESET_N",
+    "POR_N",
+    "RN",
+    "VDD",
+    "VSS"
+   ],
+   "devices": 0,
+   "instances": 2,
+   "structural": {
+    "ok": true,
+    "issues": [],
+    "warnings": [],
+    "device_count": 6,
+    "subckts_checked": [
+     "RST_COMB",
+     "RST_COMB_RC_INV",
+     "RST_COMB_RC_NAND2"
+    ],
+    "ports": [
+     "RESET_N",
+     "POR_N",
+     "RN",
+     "VDD",
+     "VSS"
+    ]
+   },
+   "sim": null,
+   "layout": null,
+   "revision": 1,
+   "source": "reference rst_comb.sp:RST_COMB"
   }
  },
  "top": null,
@@ -1909,6 +2127,10 @@
   {
    "time": "12:31:57",
    "event": "phase task-dbb4b38c-3f0a-4a6a-83cd-302265efc941 done, waiting for review"
+  },
+  {
+   "time": "12:36:56",
+   "event": "phase task-46ff19e8-a2ec-4893-8d26-5eb17568475d done, waiting for review"
   }
  ],
  "plan_status": "approved"

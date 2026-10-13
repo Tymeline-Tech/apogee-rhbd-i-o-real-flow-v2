@@ -1,0 +1,100 @@
+{
+ "passed": true,
+ "kind": "nand2",
+ "subckt": "RST_COMB_RC_NAND2",
+ "per_vdd": [
+  {
+   "vdd": 1.4,
+   "label": "nand2@1.4V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "truth table NAND2",
+     "passed": true,
+     "detail": "9 samples OK"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "avg_supply_current_uA": 0.039
+   }
+  },
+  {
+   "vdd": 3.3,
+   "label": "nand2@3.3V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "truth table NAND2",
+     "passed": true,
+     "detail": "9 samples OK"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "avg_supply_current_uA": 0.099
+   }
+  },
+  {
+   "vdd": 5.5,
+   "label": "nand2@5.5V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "truth table NAND2",
+     "passed": true,
+     "detail": "9 samples OK"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "avg_supply_current_uA": 0.254
+   }
+  }
+ ],
+ "notes": "Simulated with sky130 device models (sky130_fd_pr__nfet_g5v0d10v5, sky130_fd_pr__pfet_g5v0d10v5), corner tt, 27 \u00b0C. Pre-layout: no parasitics; one corner and temperature per run (PVT sweeps and Monte Carlo are separate runs).",
+ "log_tail": "",
+ "structural": {
+  "ok": true,
+  "issues": [],
+  "warnings": [],
+  "device_count": 4,
+  "subckts_checked": [
+   "RST_COMB_RC_NAND2"
+  ],
+  "ports": [
+   "A",
+   "B",
+   "Y",
+   "VDD",
+   "VSS"
+  ]
+ }
+}

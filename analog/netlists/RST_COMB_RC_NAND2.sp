@@ -1,0 +1,6 @@
+.subckt RST_COMB_RC_NAND2 A B Y VDD VSS
+MP1 Y A VDD VDD pch W=1 L=0.5
+MP2 Y B VDD VDD pch W=1 L=0.5
+MN1 Y A n1 VSS nch W=1 L=0.5
+MN2 n1 B VSS VSS nch W=1 L=0.5
+.ends
