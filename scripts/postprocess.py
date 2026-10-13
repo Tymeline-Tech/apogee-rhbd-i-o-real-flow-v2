@@ -2,7 +2,9 @@
 """Post-process ngspice .raw outputs for LS_UP and POR characterization.
 
 Loads voltage/timing waveforms from ngspice raw files, computes per-corner
-performance metrics with NumPy, and returns a pandas DataFrame.
+performance metrics with NumPy, and returns a pandas DataFrame. Published
+per-block tables are written via ``write_performance_csvs`` to
+``reports/ls_up_perf.csv`` and ``reports/por_perf.csv``.
 
 Metrics
 -------
@@ -813,6 +815,101 @@ def results_to_dataframe(rows: Iterable[Mapping[str, Any]]) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
+# Performance CSV tables (published reports/)
+# ---------------------------------------------------------------------------
+
+PERF_CSV_COLUMNS = [
+    "supply",
+    "corner",
+    "temperature",
+    "SEU_state",
+    "gain",
+    "delay",
+    "reset_time",
+    "upset_tolerance",
+]
+
+# Per-block output filenames under reports/
+PERF_CSV_FILES = {
+    "LS_UP": "ls_up_perf.csv",
+    "POR": "por_perf.csv",
+}
+
+
+def metrics_to_perf_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Map the post-processing metrics DataFrame to the published CSV schema.
+
+    Column mapping
+    --------------
+    supply            : VDD (POR) or VDDH (LS_UP)
+    corner            : process corner (tt/ss/ff)
+    temperature       : temp_c
+    SEU_state         : boolean SEU injection flag
+    gain              : computed voltage gain
+    delay             : prop_delay_s (LS_UP; NaN for POR)
+    reset_time        : reset_time_s (POR; NaN for LS_UP)
+    upset_tolerance   : seu_upset_tolerance
+    """
+    if df.empty:
+        return pd.DataFrame(columns=["block", *PERF_CSV_COLUMNS])
+
+    supply = df["vdd"]
+    if "vddh" in df.columns:
+        supply = supply.where(pd.notna(supply), df["vddh"])
+
+    out = pd.DataFrame(
+        {
+            "block": df["block"].astype(str).str.upper(),
+            "supply": supply,
+            "corner": df["corner"],
+            "temperature": df["temp_c"],
+            "SEU_state": df["seu"].astype(bool),
+            "gain": df["gain"],
+            "delay": df["prop_delay_s"],
+            "reset_time": df["reset_time_s"],
+            "upset_tolerance": df["seu_upset_tolerance"],
+        }
+    )
+    return out
+
+
+def write_performance_csvs(
+    df: pd.DataFrame,
+    reports_dir: Path | str = "reports",
+) -> dict[str, Path]:
+    """Write per-block performance CSVs under *reports_dir*.
+
+    Produces:
+      reports/ls_up_perf.csv
+      reports/por_perf.csv
+
+    Each file uses :data:`PERF_CSV_COLUMNS` as the header row. Empty blocks
+    still get a header-only CSV so downstream consumers always find the path.
+    """
+    reports_dir = Path(reports_dir)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    perf = metrics_to_perf_dataframe(df)
+    written: dict[str, Path] = {}
+    for block, filename in PERF_CSV_FILES.items():
+        block_df = perf.loc[perf["block"] == block, PERF_CSV_COLUMNS].copy()
+        # Stable ordering for reproducible diffs / regressions.
+        sort_cols = [
+            c
+            for c in ("corner", "temperature", "supply", "SEU_state")
+            if c in block_df.columns
+        ]
+        if not block_df.empty and sort_cols:
+            block_df = block_df.sort_values(sort_cols, kind="mergesort").reset_index(
+                drop=True
+            )
+        out_path = reports_dir / filename
+        block_df.to_csv(out_path, index=False)
+        written[block] = out_path
+    return written
+
+
+# ---------------------------------------------------------------------------
 # Synthetic fixtures (smoke / unit testing without a live ngspice run)
 # ---------------------------------------------------------------------------
 
@@ -933,8 +1030,19 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "-o",
         "--output",
-        help="optional CSV path to dump the metrics DataFrame "
-        "(CSV generation story owns production tables; this is for debug)",
+        help="optional CSV path to dump the full metrics DataFrame (debug)",
+    )
+    p.add_argument(
+        "--reports",
+        metavar="DIR",
+        default="reports",
+        help="directory for per-block performance CSVs "
+        "(ls_up_perf.csv, por_perf.csv); default: reports",
+    )
+    p.add_argument(
+        "--no-reports",
+        action="store_true",
+        help="skip writing per-block performance CSVs under --reports",
     )
     return p
 
@@ -966,6 +1074,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             assert np.allclose(por["reset_time_us"].median(), 34.5, atol=1.0)
             assert (ls_seu["seu_upset_tolerance"] == 1.0).all()
             assert (por_seu["seu_upset_tolerance"] == 1.0).all()
+            if not args.no_reports:
+                written = write_performance_csvs(df, args.reports)
+                for block, path in written.items():
+                    check = pd.read_csv(path)
+                    assert list(check.columns) == PERF_CSV_COLUMNS
+                    assert not check.empty
+                    print(f"wrote {path} ({len(check)} rows)")
             print("SMOKE_RESULT=PASS")
         return 0
 
@@ -989,6 +1104,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(out, index=False)
         print(f"wrote {out}")
+    if not args.no_reports:
+        written = write_performance_csvs(df, args.reports)
+        for block, path in written.items():
+            n = sum(1 for _ in open(path, encoding="utf-8")) - 1
+            print(f"wrote {path} ({max(n, 0)} rows) [{block}]")
     return 0
 
 
