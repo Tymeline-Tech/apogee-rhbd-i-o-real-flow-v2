@@ -1,9 +1,9 @@
 crashbackups stop
-gds read /scratch/jobs/23309ef0c7de4b509e4fc3fc2f2aa08b/run/repo/analog/layout/por.gds
-load por
+gds read /scratch/jobs/685565f0939945139330ff0d411fce65/run/repo/analog/layout/LS_UP_LS_IN.gds
+load LS_UP_LS_IN
 select top cell
 extract do local
 extract all
 ext2spice lvs
-ext2spice -o /scratch/jobs/23309ef0c7de4b509e4fc3fc2f2aa08b/run/repo/analog/layout/por.ext.spice
+ext2spice -o /scratch/jobs/685565f0939945139330ff0d411fce65/run/repo/analog/layout/LS_UP_LS_IN.ext.spice
 quit -noprompt

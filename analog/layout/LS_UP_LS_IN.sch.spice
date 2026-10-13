@@ -1,0 +1,4 @@
+.subckt LS_UP_LS_IN IN INB VDDL VSS
+XMPI INB IN VDDL VDDL sky130_fd_pr__pfet_g5v0d10v5 L=0.5 W=1 nf=1
+XMNI INB IN VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=0.5 W=0.5 nf=1
+.ends
