@@ -1,30 +1,30 @@
 {
  "spec": "Project: Apogee RHBD I/O \u2014 real flow v2\n# Project Overview\n\n**Name:** Apogee RHBD I/O \u2013 real flow v2  \n**Description:** Design two radiation\u2011hardened 5\u202fV I/O analog blocks in SkyWater sky130 (g5v0d10v5 devices) for the AP54RHC5942\u2011style RHBD interface chip, together with a top\u2011level I/O cell set and supporting software.\n\n## Core Blocks\n- **LS_UP Level Shifter** \u2013 1.8\u202fV core logic input, 5\u202fV output. Operates across a supply sweep of 1.4\u202fV\u20115.5\u202fV, all PVT corners (ss/tt/ff, \u201355\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C) and must survive SEU injection.\n- **POR Power\u2011On\u2011Reset** \u2013 Holds reset until VDD exceeds a threshold. Implements native and regular Vt detectors with the same PVT coverage as LS_UP.\n\n## Top\u2011Level Integration\n- **TOP_IO** assembles LS_UP and POR and includes top\u2011level DRC/LVS verification.\n\n## Software & Automation\n- Python scripts drive ngspice, generate PVT/SEU tables, plots, and pytest suites.\n- Verilog glue (reset combiner) and an iverilog testbench.\n- Verilog\u2011A behavioral models for LS_UP and POR.\n- End\u2011to\u2011end regression/sign\u2011off automation using Make + pytest.\n\n## Workflow Rules\n- **Simulation stories** must finish before **layout stories** for each block (finish\u2011to\u2011start).\n- **Coding stories** depend on the block stories whose results they consume.\n- Scope is limited to LS_UP, POR, and TOP_IO \u2013 no PCB/KiCad, no separate documentation/QA/release epics.\n\n## Repository Layout\n- `analog/` \u2013 schematic and layout files.\n- `scripts/` \u2013 Python characterization and automation.\n- `rtl/` \u2013 Verilog RTL glue.\n- `models/` \u2013 Verilog\u2011A behavioral models.\n\nAll work is performed by AI\u2011driven employees, emphasizing reproducible, automated flows.\nInstructions: <p>All work is done by AI Employees. Design data lives in the project repository under analog/; code under scripts/, rtl/, models/.</p><ul><li><p>Simulation stories come before layout stories of the same block (finish-to-start).</p></li><li><p>Coding stories depend on the block stories whose results they use.</p></li><li><p>Keep scope to LS_UP, POR and the top-level; no PCB / KiCad evaluation board, no separate documentation/QA/release epic.</p></li></ul><p></p>\n\nEpic: Analog Layout and Physical Verification\nTranslate the verified LS_UP and POR schematics into full GDSII layout cells using Magic, apply radiation\u2011hardening layout rules, and integrate both cells into the TOP_IO top\u2011level layout. Run complete DRC and LVS checks (Magic + Netgen) to ensure zero errors, and deliver tape\u2011out\u2011ready GDS files and verification reports.\nExpectations: Zero DRC errors and \u2264\u202f1 LVS mismatch for each block, satisfying KPI\u202f4.\n\nStory: POR Layout Cell Creation and Verification\nImplement the GDSII layout for the Power\u2011On\u2011Reset (POR) block using Magic, adhering to radiation\u2011hardening guidelines. Run DRC and LVS against the schematic, resolve any issues, and produce clean layout artifacts and verification documentation.",
  "plan": {
-  "title": "POR Layout Cell Creation and Verification",
-  "summary": "Create the layout for the POR cell, run DRC/LVS, and document the results.",
+  "title": "POR Verification and Layout DRC Phase",
+  "summary": "Import POR cell, generate layout and run DRC/LVS, re\u2011run functional simulation, perform PVT sweep, execute SEU check, and document all results.",
   "deliverables": [],
   "phases": [
    {
-    "id": "task-3de2ca72-70a1-4652-8e78-4019ef68f478",
-    "name": "Create POR layout cell in Magic",
-    "goal": "lay out the cell(s): generate the layout of each leaf cell (assemble_top for a hierarchical/top cell), which runs DRC and LVS. Do NOT plan new simulations.",
+    "id": "task-a908529d-af11-4b0a-a97c-b1d9f0f1bbdc",
+    "name": "Run DRC on POR layout",
+    "goal": "re-check the existing cell(s): simulation, PVT and SEU checks only. Do NOT change netlists unless they are missing, and do NOT plan any layout.",
     "steps": [
      {
       "action": "import_reference_cell",
       "args": {
        "file": "por.sp"
       },
-      "description": "Import verified POR schematic as cell",
+      "description": "Import verified POR netlist",
       "id": "s1_import_reference_cell_por",
       "target": "por"
      },
      {
-      "action": "generate_cell_layout",
-      "description": "Generate Magic layout for POR cell, apply RHBD rules, export GDS",
-      "id": "s2_generate_cell_layout_por",
-      "target": "por",
-      "args": {}
+      "action": "simulate_cell",
+      "args": {},
+      "description": "Run functional simulation of POR",
+      "id": "s2_simulate_cell_por",
+      "target": "por"
      }
     ],
     "deliverables": []
@@ -1775,6 +1775,10 @@
   {
    "time": "11:56:28",
    "event": "phase task-3de2ca72-70a1-4652-8e78-4019ef68f478 done, waiting for review"
+  },
+  {
+   "time": "12:04:27",
+   "event": "phase task-a908529d-af11-4b0a-a97c-b1d9f0f1bbdc done, waiting for review"
   }
  ],
  "plan_status": "approved"
