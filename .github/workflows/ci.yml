@@ -1,0 +1,365 @@
+# Apogee RHBD I/O — CI/CD automation pipeline
+# Builds the flow Docker image, runs `make all`, archives artifacts, and
+# posts a pass/fail + coverage summary (job summary and PR comment).
+#
+# Triggers: push/PR to main, nightly schedule, and manual dispatch.
+# No image registry publish or deployment steps (human-gated).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Nightly regression at 02:00 UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: apogee-rhbd-io
+  IMAGE_TAG: ci
+  # Artifact naming: <project>-<commit>-<stage>
+  PROJECT_SLUG: apogee-rhbd-io
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # -------------------------------------------------------------------------
+  # build — construct the reproducible EDA Docker image
+  # -------------------------------------------------------------------------
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build flow image
+        run: |
+          docker build \
+            --tag "${IMAGE_NAME}:${IMAGE_TAG}" \
+            --tag "${IMAGE_NAME}:${GITHUB_SHA}" \
+            .
+
+      - name: Save image for downstream jobs
+        run: |
+          mkdir -p "${RUNNER_TEMP}/docker"
+          docker save "${IMAGE_NAME}:${IMAGE_TAG}" \
+            | gzip > "${RUNNER_TEMP}/docker/${PROJECT_SLUG}-${GITHUB_SHA}-build.tar.gz"
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_SLUG }}-${{ github.sha }}-build
+          path: ${{ runner.temp }}/docker/${{ env.PROJECT_SLUG }}-${{ github.sha }}-build.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+
+  # -------------------------------------------------------------------------
+  # run — execute `make all` inside the flow container
+  # -------------------------------------------------------------------------
+  run:
+    name: Run make all
+    needs: build
+    runs-on: ubuntu-22.04
+    outputs:
+      flow_status: ${{ steps.flow.outputs.status }}
+      coverage_line: ${{ steps.summary_metrics.outputs.coverage_line }}
+      coverage_pct: ${{ steps.summary_metrics.outputs.coverage_pct }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.PROJECT_SLUG }}-${{ github.sha }}-build
+          path: ${{ runner.temp }}/docker
+
+      - name: Load Docker image
+        run: |
+          gunzip -c \
+            "${RUNNER_TEMP}/docker/${PROJECT_SLUG}-${GITHUB_SHA}-build.tar.gz" \
+            | docker load
+
+      - name: Run make all in container
+        id: flow
+        continue-on-error: true
+        run: |
+          set +e
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/workspace" \
+            --workdir /workspace \
+            "${IMAGE_NAME}:${IMAGE_TAG}" \
+            -lc "make all"
+          status=$?
+          if [[ $status -eq 0 ]]; then
+            echo "status=PASS" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=FAIL" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      - name: Collect flow outputs
+        if: always()
+        run: |
+          mkdir -p ci-out
+          for path in build reports analog/layout analog/sim models rtl; do
+            if [[ -e "$path" ]]; then
+              mkdir -p "ci-out/$(dirname "$path")"
+              cp -a "$path" "ci-out/${path}"
+            fi
+          done
+          # Marker for downstream summary when trees are empty
+          {
+            echo "commit=${GITHUB_SHA}"
+            echo "flow_status=${{ steps.flow.outputs.status }}"
+            echo "ref=${GITHUB_REF}"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+          } > ci-out/ci-meta.txt
+          find ci-out -type f | sort | tee ci-out/manifest.txt
+
+      - name: Extract coverage metrics
+        id: summary_metrics
+        if: always()
+        run: |
+          cov_line="Coverage: not available"
+          cov_pct="n/a"
+          # Prefer pytest-cov Cobertura XML (reports/coverage.xml)
+          if [[ -f reports/coverage.xml ]]; then
+            cov_pct=$(python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("reports/coverage.xml").getroot()
+          rate = root.attrib.get("line-rate")
+          if rate is None:
+              print("n/a")
+          else:
+              print(f"{float(rate) * 100:.2f}%")
+          PY
+            )
+            cov_line="pytest-cov line coverage: ${cov_pct} (reports/coverage.xml)"
+          elif [[ -f reports/verification_coverage.txt ]]; then
+            cov_line=$(head -n 1 reports/verification_coverage.txt | tr -d '\r')
+            cov_pct=$(grep -oE '[0-9]+(\.[0-9]+)?%' reports/verification_coverage.txt \
+              | head -n 1 || true)
+            [[ -z "$cov_pct" ]] && cov_pct="n/a"
+          elif [[ -f reports/verification_coverage.json ]]; then
+            cov_pct=$(python3 - <<'PY'
+          import json, pathlib
+          p = pathlib.Path("reports/verification_coverage.json")
+          data = json.loads(p.read_text())
+          for key in ("percent", "coverage_percent", "total_percent", "coverage"):
+              if key in data:
+                  val = data[key]
+                  if isinstance(val, (int, float)):
+                      print(f"{val}%")
+                  else:
+                      print(str(val))
+                  break
+          else:
+              print("n/a")
+          PY
+            )
+            cov_line="Coverage: ${cov_pct}"
+          fi
+          echo "coverage_line=${cov_line}" >> "$GITHUB_OUTPUT"
+          echo "coverage_pct=${cov_pct}" >> "$GITHUB_OUTPUT"
+          mkdir -p ci-out
+          printf '%s\n' "$cov_line" > ci-out/coverage_summary.txt
+          if [[ -f reports/coverage.xml ]]; then
+            mkdir -p ci-out/reports
+            cp -a reports/coverage.xml ci-out/reports/coverage.xml
+          fi
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_SLUG }}-${{ github.sha }}-coverage
+          path: reports/coverage.xml
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload run-stage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_SLUG }}-${{ github.sha }}-run
+          path: ci-out/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Fail job when make all failed
+        if: steps.flow.outputs.status != 'PASS'
+        run: |
+          echo "::error::make all failed (flow_status=${{ steps.flow.outputs.status }})"
+          exit 1
+
+  # -------------------------------------------------------------------------
+  # archive — package named zip, upload, and post markdown summary
+  # -------------------------------------------------------------------------
+  archive:
+    name: Archive artifacts and summarize
+    needs: run
+    if: always() && needs.run.result != 'cancelled'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download run artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.PROJECT_SLUG }}-${{ github.sha }}-run
+          path: ci-out
+        continue-on-error: true
+
+      - name: Package archive zip
+        id: package
+        run: |
+          mkdir -p dist
+          zip_name="${PROJECT_SLUG}-${GITHUB_SHA}-archive.zip"
+          if [[ -d ci-out ]] && [[ -n "$(find ci-out -type f 2>/dev/null | head -n 1)" ]]; then
+            (cd ci-out && zip -r "../dist/${zip_name}" .)
+          else
+            mkdir -p ci-out
+            echo "No run artifacts collected" > ci-out/README.txt
+            (cd ci-out && zip -r "../dist/${zip_name}" .)
+          fi
+          echo "zip_name=${zip_name}" >> "$GITHUB_OUTPUT"
+          ls -la dist/
+
+      - name: Upload archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_SLUG }}-${{ github.sha }}-archive
+          path: dist/${{ steps.package.outputs.zip_name }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Resolve status and coverage
+        id: report
+        run: |
+          flow_status="${{ needs.run.outputs.flow_status }}"
+          if [[ -z "$flow_status" ]]; then
+            if [[ "${{ needs.run.result }}" == "success" ]]; then
+              flow_status="PASS"
+            else
+              flow_status="FAIL"
+            fi
+          fi
+          coverage_line="${{ needs.run.outputs.coverage_line }}"
+          coverage_pct="${{ needs.run.outputs.coverage_pct }}"
+          if [[ -z "$coverage_line" ]]; then
+            if [[ -f ci-out/coverage_summary.txt ]]; then
+              coverage_line=$(cat ci-out/coverage_summary.txt)
+            else
+              coverage_line="Coverage: not available"
+            fi
+          fi
+          if [[ -z "$coverage_pct" ]]; then
+            coverage_pct="n/a"
+          fi
+          echo "flow_status=${flow_status}" >> "$GITHUB_OUTPUT"
+          echo "coverage_line=${coverage_line}" >> "$GITHUB_OUTPUT"
+          echo "coverage_pct=${coverage_pct}" >> "$GITHUB_OUTPUT"
+
+      - name: Write job summary
+        env:
+          FLOW_STATUS: ${{ steps.report.outputs.flow_status }}
+          COVERAGE_LINE: ${{ steps.report.outputs.coverage_line }}
+          COVERAGE_PCT: ${{ steps.report.outputs.coverage_pct }}
+          ZIP_NAME: ${{ steps.package.outputs.zip_name }}
+        run: |
+          if [[ "$FLOW_STATUS" == "PASS" ]]; then
+            badge="✅ PASS"
+          else
+            badge="❌ FAIL"
+          fi
+          {
+            echo "## Apogee RHBD I/O — CI Summary"
+            echo ""
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Status | ${badge} |"
+            echo "| Coverage | ${COVERAGE_PCT} |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| Artifact | \`${ZIP_NAME}\` |"
+            echo "| Workflow run | [${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |"
+            echo ""
+            echo "### Coverage detail"
+            echo ""
+            echo "${COVERAGE_LINE}"
+            echo ""
+            echo "### Stages"
+            echo ""
+            echo "1. **build** — Docker image \`${IMAGE_NAME}:${IMAGE_TAG}\`"
+            echo "2. **run** — \`make all\` (sim → layout → models → regression)"
+            echo "3. **archive** — \`${ZIP_NAME}\` via \`actions/upload-artifact\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post markdown summary comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          FLOW_STATUS: ${{ steps.report.outputs.flow_status }}
+          COVERAGE_LINE: ${{ steps.report.outputs.coverage_line }}
+          COVERAGE_PCT: ${{ steps.report.outputs.coverage_pct }}
+          ZIP_NAME: ${{ steps.package.outputs.zip_name }}
+        with:
+          script: |
+            const status = process.env.FLOW_STATUS || "FAIL";
+            const coverageLine = process.env.COVERAGE_LINE || "Coverage: not available";
+            const coveragePct = process.env.COVERAGE_PCT || "n/a";
+            const zipName = process.env.ZIP_NAME || "n/a";
+            const badge = status === "PASS" ? "✅ PASS" : "❌ FAIL";
+            const marker = "<!-- apogee-rhbd-io-ci-summary -->";
+            const body = [
+              marker,
+              "## Apogee RHBD I/O — CI Summary",
+              "",
+              `| Metric | Value |`,
+              `| --- | --- |`,
+              `| Status | ${badge} |`,
+              `| Coverage | ${coveragePct} |`,
+              `| Commit | \`${context.sha}\` |`,
+              `| Artifact | \`${zipName}\` |`,
+              `| Workflow run | [${context.runId}](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${context.runId}) |`,
+              "",
+              "### Coverage detail",
+              "",
+              coverageLine,
+              "",
+              "_Updated by the archive job after \`make all\`._",
+            ].join("\n");
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) =>
+              c.user?.type === "Bot" && c.body?.includes(marker)
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

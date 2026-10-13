@@ -1,0 +1,8 @@
+# pytest-cov / coverage.py
+.coverage
+.coverage.*
+htmlcov/
+reports/coverage.xml
+__pycache__/
+*.py[cod]
+.pytest_cache/
