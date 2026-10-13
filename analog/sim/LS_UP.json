@@ -1,0 +1,279 @@
+{
+ "passed": true,
+ "kind": "level_shifter",
+ "subckt": "LS_UP",
+ "per_vdd": [
+  {
+   "vdd": 3.3,
+   "label": "level_shifter@1.4->3.3V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT follows IN",
+     "passed": true,
+     "detail": "6 samples OK"
+    },
+    {
+     "name": "OUT rail-to-rail on VDDH (>90% / <10%)",
+     "passed": true,
+     "detail": "high min 3.300 V, low max 0.000 V, VDDH 3.3 V"
+    },
+    {
+     "name": "static VDDH current < 10 uA in both states",
+     "passed": true,
+     "detail": "IN=0: 1.69e-05 uA, IN=1: 2.13e-05 uA"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "vddl": 1.4,
+    "vddh": 3.3,
+    "static_I_vddh_in0_nA": 0.017,
+    "static_I_vddh_in1_nA": 0.021,
+    "static_I_vddl_in1_nA": 0.001,
+    "tpd_in_rise_ns": 0.3
+   },
+   "vddl": 1.4,
+   "vddh": 3.3
+  },
+  {
+   "vdd": 5.5,
+   "label": "level_shifter@1.4->5.5V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT follows IN",
+     "passed": true,
+     "detail": "6 samples OK"
+    },
+    {
+     "name": "OUT rail-to-rail on VDDH (>90% / <10%)",
+     "passed": true,
+     "detail": "high min 5.500 V, low max 0.000 V, VDDH 5.5 V"
+    },
+    {
+     "name": "static VDDH current < 10 uA in both states",
+     "passed": true,
+     "detail": "IN=0: 3.56e-05 uA, IN=1: 4.22e-05 uA"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "vddl": 1.4,
+    "vddh": 5.5,
+    "static_I_vddh_in0_nA": 0.036,
+    "static_I_vddh_in1_nA": 0.042,
+    "static_I_vddl_in1_nA": 0.001,
+    "tpd_in_rise_ns": 0.349
+   },
+   "vddl": 1.4,
+   "vddh": 5.5
+  },
+  {
+   "vdd": 3.3,
+   "label": "level_shifter@1.8->3.3V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT follows IN",
+     "passed": true,
+     "detail": "6 samples OK"
+    },
+    {
+     "name": "OUT rail-to-rail on VDDH (>90% / <10%)",
+     "passed": true,
+     "detail": "high min 3.300 V, low max 0.000 V, VDDH 3.3 V"
+    },
+    {
+     "name": "static VDDH current < 10 uA in both states",
+     "passed": true,
+     "detail": "IN=0: 1.69e-05 uA, IN=1: 2.13e-05 uA"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "vddl": 1.8,
+    "vddh": 3.3,
+    "static_I_vddh_in0_nA": 0.017,
+    "static_I_vddh_in1_nA": 0.021,
+    "static_I_vddl_in1_nA": 0.002,
+    "tpd_in_rise_ns": 0.213
+   },
+   "vddl": 1.8,
+   "vddh": 3.3
+  },
+  {
+   "vdd": 5.5,
+   "label": "level_shifter@1.8->5.5V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT follows IN",
+     "passed": true,
+     "detail": "6 samples OK"
+    },
+    {
+     "name": "OUT rail-to-rail on VDDH (>90% / <10%)",
+     "passed": true,
+     "detail": "high min 5.500 V, low max 0.000 V, VDDH 5.5 V"
+    },
+    {
+     "name": "static VDDH current < 10 uA in both states",
+     "passed": true,
+     "detail": "IN=0: 3.56e-05 uA, IN=1: 4.22e-05 uA"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "vddl": 1.8,
+    "vddh": 5.5,
+    "static_I_vddh_in0_nA": 0.036,
+    "static_I_vddh_in1_nA": 0.042,
+    "static_I_vddl_in1_nA": 0.002,
+    "tpd_in_rise_ns": 0.228
+   },
+   "vddl": 1.8,
+   "vddh": 5.5
+  },
+  {
+   "vdd": 3.3,
+   "label": "level_shifter@3.3->3.3V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT follows IN",
+     "passed": true,
+     "detail": "6 samples OK"
+    },
+    {
+     "name": "OUT rail-to-rail on VDDH (>90% / <10%)",
+     "passed": true,
+     "detail": "high min 3.300 V, low max 0.000 V, VDDH 3.3 V"
+    },
+    {
+     "name": "static VDDH current < 10 uA in both states",
+     "passed": true,
+     "detail": "IN=0: 1.69e-05 uA, IN=1: 2.13e-05 uA"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "vddl": 3.3,
+    "vddh": 3.3,
+    "static_I_vddh_in0_nA": 0.017,
+    "static_I_vddh_in1_nA": 0.021,
+    "static_I_vddl_in1_nA": 0.003,
+    "tpd_in_rise_ns": 0.053
+   },
+   "vddl": 3.3,
+   "vddh": 3.3
+  },
+  {
+   "vdd": 5.5,
+   "label": "level_shifter@3.3->5.5V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT follows IN",
+     "passed": true,
+     "detail": "6 samples OK"
+    },
+    {
+     "name": "OUT rail-to-rail on VDDH (>90% / <10%)",
+     "passed": true,
+     "detail": "high min 5.500 V, low max 0.000 V, VDDH 5.5 V"
+    },
+    {
+     "name": "static VDDH current < 10 uA in both states",
+     "passed": true,
+     "detail": "IN=0: 3.56e-05 uA, IN=1: 4.22e-05 uA"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "vddl": 3.3,
+    "vddh": 5.5,
+    "static_I_vddh_in0_nA": 0.036,
+    "static_I_vddh_in1_nA": 0.042,
+    "static_I_vddl_in1_nA": 0.003,
+    "tpd_in_rise_ns": 0.055
+   },
+   "vddl": 3.3,
+   "vddh": 5.5
+  }
+ ],
+ "notes": "Simulated with sky130 device models (sky130_fd_pr__nfet_g5v0d10v5, sky130_fd_pr__pfet_g5v0d10v5), corner tt, 27 \u00b0C. Pre-layout: no parasitics; one corner and temperature per run (PVT sweeps and Monte Carlo are separate runs).",
+ "log_tail": "",
+ "structural": {
+  "ok": true,
+  "issues": [],
+  "warnings": [],
+  "device_count": 8,
+  "subckts_checked": [
+   "LS_UP",
+   "LS_UP_LS_CORE",
+   "LS_UP_LS_IN"
+  ],
+  "ports": [
+   "IN",
+   "OUT",
+   "VDDL",
+   "VDDH",
+   "VSS"
+  ]
+ }
+}

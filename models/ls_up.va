@@ -1,0 +1,115 @@
+// =============================================================================
+// LS_UP — parameterized Verilog-A behavioral model
+// Apogee RHBD I/O (sky130 g5v0d10v5 / device class g5v0d10v5)
+//
+// Ports match the schematic subckt:
+//   .subckt LS_UP IN OUT VDDL VDDH VSS
+//
+// Equations are fitted to Epic 1 ngspice characterization
+// (analog/sim/LS_UP.json, analog/docs/ls_up_sim_results.md):
+//   - rail-to-rail VDDH voltage transfer from VDDL-domain IN
+//   - rise propagation delay tpd_in_rise across supply pairs
+//   - static VDDH/VDDL leakage currents
+// PVT and SEU enter as explicit parameters for corner / upset sweeps.
+// =============================================================================
+
+`include "disciplines.vams"
+
+module ls_up(IN, OUT, VDDL, VDDH, VSS);
+
+    inout IN, OUT, VDDL, VDDH, VSS;
+    electrical IN, OUT, VDDL, VDDH, VSS;
+
+    // ---- Supply / operating-range parameters (1.4 V .. 5.5 V) ----------------
+    parameter real vddl_nom = 1.8 from [1.4:3.3];   // nominal core supply
+    parameter real vddh_nom = 5.0 from [1.4:5.5];   // nominal I/O supply
+    parameter real vin_thresh = 0.5 from (0:1);     // IN trip as fraction of VDDL
+    parameter real soft_gain = 40.0 from (1:inf);   // tanh sharpness of VTC
+
+    // ---- Process / temperature / SEU ----------------------------------------
+    // process: -1 = ss, 0 = tt, +1 = ff  (scales delay & leakage)
+    parameter real process = 0 from [-1:1];
+    parameter real temp_c = 27 from [-55:125];      // Celsius
+    parameter integer seu = 0 from [0:1];           // 1 enables SEU pulse
+    parameter real seu_time = 50n from (0:inf);     // seconds
+    parameter real seu_width = 1n from (0:inf);     // seconds
+    parameter real seu_amp = 1.0 from [0:1];        // fraction of VDDH upset
+
+    // ---- Delay fit coeffs (ns) — exact LS fit to Epic 1 tt@27 C table --------
+    // tpd_ns = c0 + c1/vddl + c2/vddl^2 + c3*vddh + c4*vddh/vddl + c5*vddh/vddl^2
+    // reproduces measured tpd_in_rise for all six supply pairs within ~1e-15 ns.
+    parameter real tpd_c0 = -0.25351579;
+    parameter real tpd_c1 =  1.24445053;
+    parameter real tpd_c2 = -0.80139979;
+    parameter real tpd_c3 =  0.02409569;
+    parameter real tpd_c4 = -0.13101531;
+    parameter real tpd_c5 =  0.17984842;
+
+    // ---- Static-current fit coeffs (nA) from Epic 1 --------------------------
+    // I_VDDH(IN=0) ≈ i0_a + i0_b * VDDH
+    // I_VDDH(IN=1) ≈ i1_a + i1_b * VDDH
+    // I_VDDL(IN=1) ≈ il_k * VDDL
+    parameter real i_vddh0_a = -0.0115;
+    parameter real i_vddh0_b =  0.008636;
+    parameter real i_vddh1_a = -0.0105;
+    parameter real i_vddh1_b =  0.009545;
+    parameter real i_vddl1_k =  0.00091;
+
+    // ---- PVT scale knobs (defaults match ss/tt/ff + temp slope) --------------
+    parameter real process_delay_coeff = 0.25;      // ss:+25%, ff:-25%
+    parameter real temp_delay_coeff = 0.003;        // ~0.3 %/C vs 27 C
+    parameter real process_leak_coeff = 0.20;
+    parameter real temp_leak_coeff = 0.01;          // leakage rises with T
+
+    // Internal quantities
+    real vddl_v, vddh_v, vin_n, vtc;
+    real tpd_ns, tpd_s, pvt_delay, pvt_leak;
+    real i_vddh_nA, i_vddl_nA;
+    real seu_pulse, v_out_ideal;
+
+    analog begin
+        // Supplies (floor to avoid /0 during ramp-up)
+        vddl_v = max(V(VDDL, VSS), 1.0e-3);
+        vddh_v = max(V(VDDH, VSS), 1.0e-3);
+
+        // Normalized input and soft voltage-transfer curve (VDDL -> VDDH)
+        vin_n = V(IN, VSS) / vddl_v;
+        vtc = 0.5 * (1.0 + tanh(soft_gain * (vin_n - vin_thresh)));
+
+        // Propagation delay from fitted supply surface + PVT scales
+        tpd_ns = tpd_c0
+               + tpd_c1 / vddl_v
+               + tpd_c2 / (vddl_v * vddl_v)
+               + tpd_c3 * vddh_v
+               + tpd_c4 * vddh_v / vddl_v
+               + tpd_c5 * vddh_v / (vddl_v * vddl_v);
+        pvt_delay = (1.0 - process_delay_coeff * process)
+                  * (1.0 + temp_delay_coeff * (temp_c - 27.0));
+        tpd_s = max(tpd_ns * pvt_delay, 1.0e-3) * 1.0e-9;   // clamp >= 1 ps
+
+        // Ideal delayed output on VDDH rail (absdelay must stay unconditional)
+        v_out_ideal = absdelay(vddh_v * vtc, tpd_s, 1.0e-9);
+
+        // SEU: continuous soft window (no analog ops inside if) then recover
+        // window ~= 1 for t in [seu_time, seu_time+seu_width] when seu!=0
+        seu_pulse = seu * 0.25
+            * (1.0 + tanh(1.0e11 * ($abstime - seu_time)))
+            * (1.0 + tanh(1.0e11 * (seu_time + seu_width - $abstime)));
+        V(OUT, VSS) <+ (1.0 - seu_pulse) * v_out_ideal
+                     + seu_pulse * vddh_v * (1.0 - seu_amp * vtc);
+
+        // Static supply currents (nA -> A), PVT-scaled; state via soft VTC
+        pvt_leak = (1.0 + process_leak_coeff * process)
+                 * (1.0 + temp_leak_coeff * (temp_c - 27.0));
+        i_vddh_nA = ((i_vddh0_a + i_vddh0_b * vddh_v) * (1.0 - vtc)
+                  +  (i_vddh1_a + i_vddh1_b * vddh_v) * vtc) * pvt_leak;
+        i_vddl_nA = (i_vddl1_k * vddl_v) * vtc * pvt_leak;
+
+        I(VDDH, VSS) <+ i_vddh_nA * 1.0e-9;
+        I(VDDL, VSS) <+ i_vddl_nA * 1.0e-9;
+
+        // Tiny input current (capacitive drive is external); keep IN high-Z
+        I(IN, VSS) <+ 1.0e-15 * V(IN, VSS);
+    end
+
+endmodule

@@ -1,0 +1,14 @@
+[
+ {
+  "file": "tran_inv_1.4V.png",
+  "title": "Transient inv@1.4V"
+ },
+ {
+  "file": "tran_inv_3.3V.png",
+  "title": "Transient inv@3.3V"
+ },
+ {
+  "file": "tran_inv_5.5V.png",
+  "title": "Transient inv@5.5V"
+ }
+]

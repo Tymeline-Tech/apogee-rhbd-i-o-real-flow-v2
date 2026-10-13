@@ -1,0 +1,105 @@
+{
+ "passed": true,
+ "kind": "inv",
+ "subckt": "RST_COMB_RC_INV",
+ "per_vdd": [
+  {
+   "vdd": 1.4,
+   "label": "inv@1.4V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT = not IN",
+     "passed": true,
+     "detail": "8 samples OK"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "tpd_in_rise_ns": 0.461,
+    "tpd_in_fall_ns": 0.772,
+    "avg_supply_current_uA": 0.056
+   }
+  },
+  {
+   "vdd": 3.3,
+   "label": "inv@3.3V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT = not IN",
+     "passed": true,
+     "detail": "8 samples OK"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "tpd_in_rise_ns": 0.178,
+    "tpd_in_fall_ns": 0.226,
+    "avg_supply_current_uA": 0.138
+   }
+  },
+  {
+   "vdd": 5.5,
+   "label": "inv@5.5V",
+   "passed": true,
+   "checks": [
+    {
+     "name": "netlist parsed and simulated",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "OUT = not IN",
+     "passed": true,
+     "detail": "8 samples OK"
+    },
+    {
+     "name": "settled levels restored (<20% / >80% of rail)",
+     "passed": true,
+     "detail": "all sampled levels restored"
+    }
+   ],
+   "measurements": {
+    "tpd_in_rise_ns": 0.13,
+    "tpd_in_fall_ns": 0.162,
+    "avg_supply_current_uA": 0.311
+   }
+  }
+ ],
+ "notes": "Simulated with sky130 device models (sky130_fd_pr__nfet_g5v0d10v5, sky130_fd_pr__pfet_g5v0d10v5), corner tt, 27 \u00b0C. Pre-layout: no parasitics; one corner and temperature per run (PVT sweeps and Monte Carlo are separate runs).",
+ "log_tail": "",
+ "structural": {
+  "ok": true,
+  "issues": [],
+  "warnings": [],
+  "device_count": 2,
+  "subckts_checked": [
+   "RST_COMB_RC_INV"
+  ],
+  "ports": [
+   "A",
+   "Y",
+   "VDD",
+   "VSS"
+  ]
+ }
+}

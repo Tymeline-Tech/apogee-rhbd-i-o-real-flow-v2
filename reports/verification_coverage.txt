@@ -1,0 +1,12 @@
+Apogee RHBD I/O — RTL / model verification coverage
+============================================================
+Accepted:              True
+Functional coverage:   100.00% (need ≥ 99%)
+Max rel. deviation:    0.9806% (need ≤ 1%)
+Icarus TB:             PASS (corners=13)
+Bins hit:              74/74
+
+All bins hit.
+NOTE: SPICE references: analog/sim/LS_UP.json, analog/sim/POR.json
+NOTE: Perf CSVs: reports/ls_up_perf.csv, reports/por_perf.csv
+NOTE: Icarus TB: rtl/tb_top_io.v + rtl/reset_combiner.v

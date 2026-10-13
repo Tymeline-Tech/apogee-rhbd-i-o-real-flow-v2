@@ -1,0 +1,10 @@
+.subckt por VDD VSS POR_N
+XMS B VDD VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=4 W=0.9 nf=1
+XML0 VDD VDD B VSS sky130_fd_pr__nfet_05v0_nvt L=25 W=1 nf=1
+XMH B VDD h VSS sky130_fd_pr__nfet_g5v0d10v5 L=32 W=0.42 nf=1
+XMHS h POR_N VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=0.5 W=1 nf=1
+XMCB VDD B VDD VDD sky130_fd_pr__pfet_g5v0d10v5 L=2 W=2 nf=1
+XMP2 POR_N B VDD VDD sky130_fd_pr__pfet_g5v0d10v5 L=0.5 W=2 nf=1
+XMN2 POR_N B VSS VSS sky130_fd_pr__nfet_05v0_nvt L=25 W=1 nf=1
+XMCO VSS POR_N VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=4 W=4 nf=1
+.ends

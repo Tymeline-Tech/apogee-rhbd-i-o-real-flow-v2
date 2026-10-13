@@ -1,0 +1,37 @@
+* NGSPICE file created from TOP_IO.ext - technology: sky130A
+
+.subckt por VSS POR_N VDD
+X0 VSS POR_N VSS VSS sky130_fd_pr__nfet_g5v0d10v5 ad=1.16 pd=8.58 as=3.161 ps=24.7 w=4 l=4
+X1 VDD a_373_569# POR_N VDD sky130_fd_pr__pfet_g5v0d10v5 ad=0.58 pd=4.58 as=0.58 ps=4.58 w=2 l=0.5
+X2 a_373_569# VDD VDD VSS sky130_fd_pr__nfet_05v0_nvt ad=0.29 pd=2.58 as=0.29 ps=2.58 w=1 l=25
+X3 VSS POR_N a_13711_617# VSS sky130_fd_pr__nfet_g5v0d10v5 ad=0.29 pd=2.58 as=0.29 ps=2.58 w=1 l=0.5
+X4 VSS a_373_569# POR_N VSS sky130_fd_pr__nfet_05v0_nvt ad=0.29 pd=2.58 as=0.29 ps=2.58 w=1 l=25
+X5 VSS VDD a_373_569# VSS sky130_fd_pr__nfet_g5v0d10v5 ad=0.261 pd=2.38 as=0.261 ps=2.38 w=0.9 l=4
+X6 a_13711_617# VDD a_373_569# VSS sky130_fd_pr__nfet_g5v0d10v5 ad=0.1218 pd=1.42 as=0.1218 ps=1.42 w=0.42 l=32
+X7 VDD a_373_569# VDD VDD sky130_fd_pr__pfet_g5v0d10v5 ad=0.58 pd=4.58 as=1.74 ps=13.74 w=2 l=2
+.ends
+
+.subckt LS_UP_LS_CORE VSS IN INB OUT VDDH
+X0 VSS INB a_1015_259# VSS sky130_fd_pr__nfet_g5v0d10v5 ad=1.74 pd=12.58 as=1.74 ps=12.58 w=6 l=0.5
+X1 VDDH a_373_259# OUT VDDH sky130_fd_pr__pfet_g5v0d10v5 ad=0.58 pd=4.58 as=0.58 ps=4.58 w=2 l=0.5
+X2 VSS a_373_259# OUT VSS sky130_fd_pr__nfet_g5v0d10v5 ad=0.29 pd=2.58 as=0.29 ps=2.58 w=1 l=0.5
+X3 VDDH a_373_259# a_1015_259# VDDH sky130_fd_pr__pfet_g5v0d10v5 ad=0.145 pd=1.58 as=0.145 ps=1.58 w=0.5 l=0.5
+X4 VDDH a_1015_259# a_373_259# VDDH sky130_fd_pr__pfet_g5v0d10v5 ad=0.145 pd=1.58 as=0.145 ps=1.58 w=0.5 l=0.5
+X5 VSS IN a_373_259# VSS sky130_fd_pr__nfet_g5v0d10v5 ad=1.74 pd=12.58 as=1.74 ps=12.58 w=6 l=0.5
+.ends
+
+.subckt LS_UP_LS_IN VSS INB IN VDDL
+X0 VDDL IN INB VDDL sky130_fd_pr__pfet_g5v0d10v5 ad=0.29 pd=2.58 as=0.29 ps=2.58 w=1 l=0.5
+X1 VSS IN INB VSS sky130_fd_pr__nfet_g5v0d10v5 ad=0.145 pd=1.58 as=0.145 ps=1.58 w=0.5 l=0.5
+.ends
+
+.subckt LS_UP IN VDDL OUT VDDH VSS
+XXC VSS IN XI/INB OUT VDDH LS_UP_LS_CORE
+XXI VSS XI/INB IN VDDL LS_UP_LS_IN
+.ends
+
+.subckt TOP_IO IN OUT VDDL VDDH VSS POR_N
+XXPOR1 VSS POR_N VDDH por
+XXLSU1 IN VDDL OUT VDDH VSS LS_UP
+.ends
+

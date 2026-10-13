@@ -1,0 +1,4 @@
+.subckt LS_UP_LS_IN IN INB VDDL VSS
+MPI INB IN VDDL VDDL pch W=1 L=0.5
+MNI INB IN VSS VSS nch W=0.5 L=0.5
+.ends
