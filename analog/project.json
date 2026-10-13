@@ -1,74 +1,37 @@
 {
  "spec": "Project: Apogee RHBD I/O \u2014 real flow v2\n# Project Overview\n\n**Name:** Apogee RHBD I/O \u2013 real flow v2  \n**Description:** Design two radiation\u2011hardened 5\u202fV I/O analog blocks in SkyWater sky130 (g5v0d10v5 devices) for the AP54RHC5942\u2011style RHBD interface chip, together with a top\u2011level I/O cell set and supporting software.\n\n## Core Blocks\n- **LS_UP Level Shifter** \u2013 1.8\u202fV core logic input, 5\u202fV output. Operates across a supply sweep of 1.4\u202fV\u20115.5\u202fV, all PVT corners (ss/tt/ff, \u201355\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C) and must survive SEU injection.\n- **POR Power\u2011On\u2011Reset** \u2013 Holds reset until VDD exceeds a threshold. Implements native and regular Vt detectors with the same PVT coverage as LS_UP.\n\n## Top\u2011Level Integration\n- **TOP_IO** assembles LS_UP and POR and includes top\u2011level DRC/LVS verification.\n\n## Software & Automation\n- Python scripts drive ngspice, generate PVT/SEU tables, plots, and pytest suites.\n- Verilog glue (reset combiner) and an iverilog testbench.\n- Verilog\u2011A behavioral models for LS_UP and POR.\n- End\u2011to\u2011end regression/sign\u2011off automation using Make + pytest.\n\n## Workflow Rules\n- **Simulation stories** must finish before **layout stories** for each block (finish\u2011to\u2011start).\n- **Coding stories** depend on the block stories whose results they consume.\n- Scope is limited to LS_UP, POR, and TOP_IO \u2013 no PCB/KiCad, no separate documentation/QA/release epics.\n\n## Repository Layout\n- `analog/` \u2013 schematic and layout files.\n- `scripts/` \u2013 Python characterization and automation.\n- `rtl/` \u2013 Verilog RTL glue.\n- `models/` \u2013 Verilog\u2011A behavioral models.\n\nAll work is performed by AI\u2011driven employees, emphasizing reproducible, automated flows.\nInstructions: <p>All work is done by AI Employees. Design data lives in the project repository under analog/; code under scripts/, rtl/, models/.</p><ul><li><p>Simulation stories come before layout stories of the same block (finish-to-start).</p></li><li><p>Coding stories depend on the block stories whose results they use.</p></li><li><p>Keep scope to LS_UP, POR and the top-level; no PCB / KiCad evaluation board, no separate documentation/QA/release epic.</p></li></ul><p></p>\n\nEpic: Analog Block Simulation and Characterization\nDevelop complete SPICE netlists for the LS_UP level\u2011shifter and POR reset block, run exhaustive ngspice simulations covering the full 1.4\u20115.5\u202fV supply range, ss/tt/ff process corners, -55\u202f\u00b0C to 125\u202f\u00b0C temperature sweep, and SEU injection scenarios. Collect logs, waveforms, and auto\u2011generate PVT/SEU performance tables and plots. The deliverable provides the authoritative characterization data used by downstream layout, behavioral modeling, and automation pipelines.\nExpectations: All simulation runs finish without errors, coverage tables are generated, and data passes sanity checks (>99\u202f% functional coverage).\n\nStory: LS_UP and POR SPICE Netlist and Simulation Deck Development\nCreate transistor\u2011level Xschem netlists for the LS_UP level\u2011shifter and POR reset block, build reusable ngspice deck templates that iterate over the full 1.4\u20115.5\u202fV supply range, ss/tt/ff process corners, -55\u202f\u00b0C/27\u202f\u00b0C/125\u202f\u00b0C temperatures and SEU injection states, and execute the complete simulation matrix. All artifacts are stored under analog/simulation/ with version tagging. This work provides the authoritative characterization data for downstream layout, behavioral modeling and automation pipelines.",
  "plan": {
-  "title": "LS_UP and POR Netlist and Simulation Plan",
-  "summary": "Import LS_UP and POR reference cells, document netlists, simulate across PVT, run PVT checks, collect results.",
+  "title": "POR Xschem Netlist and Simulation Development",
+  "summary": "Plan to create POR netlist, simulate across full supply and PVT, and run PVT verification.",
   "deliverables": [],
   "phases": [
    {
-    "id": "task-cd4f577f-7838-4095-ba3b-001f2ecbdd58",
-    "name": "Create LS_UP Xschem netlist",
+    "id": "task-3b676ceb-e48a-4c58-984e-e4318b22a967",
+    "name": "Create POR Xschem netlist",
     "goal": "design the circuit: write or import the cell netlist(s), simulate them at every supply, and run the PVT check (and the SEU check for storage cells). Do NOT plan any layout.",
     "steps": [
      {
       "action": "import_reference_cell",
       "args": {
-       "file": "level_shifter.sp"
-      },
-      "description": "Import LS_UP reference",
-      "id": "s1_import_reference_cell_LS_UP",
-      "target": "LS_UP"
-     },
-     {
-      "action": "import_reference_cell",
-      "args": {
        "file": "por.sp"
       },
-      "description": "Import POR reference",
-      "id": "s2_import_reference_cell_POR",
+      "description": "Import POR cell",
+      "id": "s1_import_reference_cell_POR",
       "target": "POR"
-     },
-     {
-      "action": "write_document",
-      "args": {},
-      "description": "Document LS_UP netlist",
-      "id": "s3_write_document_ls_up_netlist",
-      "target": "ls_up_netlist"
-     },
-     {
-      "action": "write_document",
-      "args": {},
-      "description": "Document POR netlist",
-      "id": "s4_write_document_por_netlist",
-      "target": "por_netlist"
      },
      {
       "action": "simulate_cell",
       "args": {},
-      "description": "Run LS_UP simulation",
-      "id": "s5_simulate_cell_LS_UP",
-      "target": "LS_UP"
-     },
-     {
-      "action": "write_document",
-      "args": {},
-      "description": "Document LS_UP results",
-      "id": "s6_write_document_ls_up_sim_results",
-      "target": "ls_up_sim_results"
-     },
-     {
-      "action": "simulate_cell",
-      "args": {},
-      "description": "Run POR simulation",
-      "id": "s7_simulate_cell_POR",
+      "description": "Run functional simulation",
+      "id": "s2_simulate_cell_POR",
       "target": "POR"
      },
      {
-      "action": "write_document",
+      "action": "pvt_check",
       "args": {},
-      "description": "Document POR results",
-      "id": "s8_write_document_por_sim_results",
-      "target": "por_sim_results"
+      "description": "Run PVT check",
+      "id": "s3_pvt_check_POR",
+      "target": "POR"
      }
     ],
     "deliverables": []
@@ -457,7 +420,413 @@
    },
    "layout": null,
    "revision": 1,
-   "source": "reference por.sp:POR"
+   "source": "reference por.sp:POR",
+   "pvt": {
+    "corners": [
+     "tt",
+     "ff",
+     "ss"
+    ],
+    "temps": [
+     -55,
+     25,
+     125
+    ],
+    "grid": [
+     {
+      "corner": "tt",
+      "temp": -55,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.26,
+         "release_time_us": 90.03,
+         "reassert_threshold_v": 1.217,
+         "hysteresis_v": 0.043,
+         "supply_current_at_vmax_uA": 2.89
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.268,
+         "release_time_us": 38.43,
+         "reassert_threshold_v": 1.2,
+         "hysteresis_v": 0.068,
+         "supply_current_at_vmax_uA": 22.036
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.278,
+         "release_time_us": 23.23,
+         "reassert_threshold_v": 1.185,
+         "hysteresis_v": 0.093,
+         "supply_current_at_vmax_uA": 60.234
+        }
+       }
+      ]
+     },
+     {
+      "corner": "tt",
+      "temp": 25,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.134,
+         "release_time_us": 81.03,
+         "reassert_threshold_v": 1.103,
+         "hysteresis_v": 0.031,
+         "supply_current_at_vmax_uA": 2.29
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.142,
+         "release_time_us": 34.62,
+         "reassert_threshold_v": 1.091,
+         "hysteresis_v": 0.051,
+         "supply_current_at_vmax_uA": 14.657
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.146,
+         "release_time_us": 20.83,
+         "reassert_threshold_v": 1.081,
+         "hysteresis_v": 0.065,
+         "supply_current_at_vmax_uA": 39.351
+        }
+       }
+      ]
+     },
+     {
+      "corner": "tt",
+      "temp": 125,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 0.975,
+         "release_time_us": 69.63,
+         "reassert_threshold_v": 0.949,
+         "hysteresis_v": 0.026,
+         "supply_current_at_vmax_uA": 1.905
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 0.981,
+         "release_time_us": 29.73,
+         "reassert_threshold_v": 0.939,
+         "hysteresis_v": 0.042,
+         "supply_current_at_vmax_uA": 10.145
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 0.986,
+         "release_time_us": 17.93,
+         "reassert_threshold_v": 0.932,
+         "hysteresis_v": 0.054,
+         "supply_current_at_vmax_uA": 26.367
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ff",
+      "temp": -55,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.199,
+         "release_time_us": 85.63,
+         "reassert_threshold_v": 1.164,
+         "hysteresis_v": 0.035,
+         "supply_current_at_vmax_uA": 3.461
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.205,
+         "release_time_us": 36.53,
+         "reassert_threshold_v": 1.153,
+         "hysteresis_v": 0.052,
+         "supply_current_at_vmax_uA": 24.764
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.212,
+         "release_time_us": 22.03,
+         "reassert_threshold_v": 1.141,
+         "hysteresis_v": 0.071,
+         "supply_current_at_vmax_uA": 67.378
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ff",
+      "temp": 25,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.074,
+         "release_time_us": 76.73,
+         "reassert_threshold_v": 1.046,
+         "hysteresis_v": 0.028,
+         "supply_current_at_vmax_uA": 2.691
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.08,
+         "release_time_us": 32.73,
+         "reassert_threshold_v": 1.038,
+         "hysteresis_v": 0.042,
+         "supply_current_at_vmax_uA": 16.44
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.084,
+         "release_time_us": 19.72,
+         "reassert_threshold_v": 1.031,
+         "hysteresis_v": 0.053,
+         "supply_current_at_vmax_uA": 43.957
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ff",
+      "temp": 125,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 0.91,
+         "release_time_us": 65.03,
+         "reassert_threshold_v": 0.89,
+         "hysteresis_v": 0.02,
+         "supply_current_at_vmax_uA": 2.216
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 0.918,
+         "release_time_us": 27.83,
+         "reassert_threshold_v": 0.883,
+         "hysteresis_v": 0.035,
+         "supply_current_at_vmax_uA": 11.353
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 0.926,
+         "release_time_us": 16.83,
+         "reassert_threshold_v": 0.877,
+         "hysteresis_v": 0.049,
+         "supply_current_at_vmax_uA": 29.394
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ss",
+      "temp": -55,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.323,
+         "release_time_us": 94.53,
+         "reassert_threshold_v": 1.266,
+         "hysteresis_v": 0.057,
+         "supply_current_at_vmax_uA": 2.346
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.334,
+         "release_time_us": 40.43,
+         "reassert_threshold_v": 1.242,
+         "hysteresis_v": 0.092,
+         "supply_current_at_vmax_uA": 19.324
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.344,
+         "release_time_us": 24.43,
+         "reassert_threshold_v": 1.224,
+         "hysteresis_v": 0.12,
+         "supply_current_at_vmax_uA": 52.984
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ss",
+      "temp": 25,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.196,
+         "release_time_us": 85.43,
+         "reassert_threshold_v": 1.159,
+         "hysteresis_v": 0.037,
+         "supply_current_at_vmax_uA": 1.912
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.205,
+         "release_time_us": 36.53,
+         "reassert_threshold_v": 1.143,
+         "hysteresis_v": 0.062,
+         "supply_current_at_vmax_uA": 12.883
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.211,
+         "release_time_us": 22.02,
+         "reassert_threshold_v": 1.13,
+         "hysteresis_v": 0.081,
+         "supply_current_at_vmax_uA": 34.684
+        }
+       }
+      ]
+     },
+     {
+      "corner": "ss",
+      "temp": 125,
+      "passed": true,
+      "per_vdd": [
+       {
+        "vdd": 1.4,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.036,
+         "release_time_us": 74.03,
+         "reassert_threshold_v": 1.007,
+         "hysteresis_v": 0.029,
+         "supply_current_at_vmax_uA": 1.613
+        }
+       },
+       {
+        "vdd": 3.3,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.044,
+         "release_time_us": 31.63,
+         "reassert_threshold_v": 0.998,
+         "hysteresis_v": 0.046,
+         "supply_current_at_vmax_uA": 8.941
+        }
+       },
+       {
+        "vdd": 5.5,
+        "passed": true,
+        "failed_checks": [],
+        "measurements": {
+         "release_threshold_v": 1.052,
+         "release_time_us": 19.13,
+         "reassert_threshold_v": 0.987,
+         "hysteresis_v": 0.065,
+         "supply_current_at_vmax_uA": 23.304
+        }
+       }
+      ]
+     }
+    ],
+    "passed": true,
+    "failed_points": [],
+    "skipped_points": [],
+    "models": "sky130A 5 V devices (g5v0d10v5, Magic PCells)",
+    "time": "2026-10-13 11:34:30"
+   }
   }
  },
  "top": null,
@@ -465,6 +834,10 @@
   {
    "time": "11:27:34",
    "event": "phase task-cd4f577f-7838-4095-ba3b-001f2ecbdd58 done, waiting for review"
+  },
+  {
+   "time": "11:34:30",
+   "event": "phase task-3b676ceb-e48a-4c58-984e-e4318b22a967 done, waiting for review"
   }
  ],
  "plan_status": "approved"
