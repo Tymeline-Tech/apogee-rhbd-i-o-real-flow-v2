@@ -1,0 +1,30 @@
+.subckt LS_UP_LS_IN IN INB VDDL VSS
+XMPI INB IN VDDL VDDL sky130_fd_pr__pfet_g5v0d10v5 L=0.5 W=1 nf=1
+XMNI INB IN VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=0.5 W=0.5 nf=1
+.ends
+.subckt LS_UP_LS_CORE IN INB OUT VDDH VSS
+XMN1 X IN VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=0.5 W=6 nf=1
+XMN2 Y INB VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=0.5 W=6 nf=1
+XMP1 X Y VDDH VDDH sky130_fd_pr__pfet_g5v0d10v5 L=0.5 W=0.5 nf=1
+XMP2 Y X VDDH VDDH sky130_fd_pr__pfet_g5v0d10v5 L=0.5 W=0.5 nf=1
+XMPO OUT X VDDH VDDH sky130_fd_pr__pfet_g5v0d10v5 L=0.5 W=2 nf=1
+XMNO OUT X VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=0.5 W=1 nf=1
+.ends
+.subckt LS_UP IN OUT VDDL VDDH VSS
+XXI IN INB VDDL VSS LS_UP_LS_IN
+XXC IN INB OUT VDDH VSS LS_UP_LS_CORE
+.ends
+.subckt por VDD VSS POR_N
+XMS B VDD VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=4 W=0.9 nf=1
+XML0 VDD VDD B VSS sky130_fd_pr__nfet_05v0_nvt L=25 W=1 nf=1
+XMH B VDD h VSS sky130_fd_pr__nfet_g5v0d10v5 L=32 W=0.42 nf=1
+XMHS h POR_N VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=0.5 W=1 nf=1
+XMCB VDD B VDD VDD sky130_fd_pr__pfet_g5v0d10v5 L=2 W=2 nf=1
+XMP2 POR_N B VDD VDD sky130_fd_pr__pfet_g5v0d10v5 L=0.5 W=2 nf=1
+XMN2 POR_N B VSS VSS sky130_fd_pr__nfet_05v0_nvt L=25 W=1 nf=1
+XMCO VSS POR_N VSS VSS sky130_fd_pr__nfet_g5v0d10v5 L=4 W=4 nf=1
+.ends
+.subckt TOP_IO IN OUT VDDL VDDH VSS POR_N
+XXLSU1 IN OUT VDDL VDDH VSS LS_UP
+XXPOR1 VDDH VSS POR_N por
+.ends
