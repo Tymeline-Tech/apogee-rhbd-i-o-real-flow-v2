@@ -268,13 +268,20 @@ require-tools-regression:
 		echo "error: $(PYTHON) not found on PATH" >&2; exit 1; }
 	@$(PYTHON) -c "import pytest" >/dev/null 2>&1 || { \
 		echo "error: pytest not installed for $(PYTHON)" >&2; exit 1; }
+	@$(PYTHON) -c "import pytest_cov" >/dev/null 2>&1 || { \
+		echo "error: pytest-cov not installed for $(PYTHON)" >&2; exit 1; }
 
 # Alias kept for compatibility with the verification-story Makefile
 test: verification
 
 verification:
 	@mkdir -p "$(REPORTS_DIR)"
-	$(PYTEST) -m verification
+	$(PYTEST) -m verification \
+		--cov=tests \
+		--cov-config=.coveragerc \
+		--cov-report=term-missing \
+		--cov-report=xml:$(REPORTS_DIR)/coverage.xml \
+		--cov-fail-under=99
 	@echo "VERIFICATION_RESULT=PASS"
 
 clean-verification:
@@ -282,6 +289,9 @@ clean-verification:
 		$(REPORTS_DIR)/verification_artifacts \
 		$(REPORTS_DIR)/verification_coverage.json \
 		$(REPORTS_DIR)/verification_coverage.txt \
+		$(REPORTS_DIR)/coverage.xml \
+		.coverage \
+		htmlcov \
 		$(RTL_DIR)/tb_top_io.vvp \
 		$(RTL_DIR)/tb_top_io.vcd
 

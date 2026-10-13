@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-pandas \
         python3-matplotlib \
         python3-pytest \
+        python3-pytest-cov \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

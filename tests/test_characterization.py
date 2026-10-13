@@ -52,7 +52,7 @@ def _expected_grid_size() -> int:
 
 def _run_characterize(reports_dir: Path, sim_dir: Path, build_dir: Path) -> subprocess.CompletedProcess[str]:
     """Invoke the characterization driver with the locked regression grid."""
-    if not CHARACTERIZE_SCRIPT.is_file():
+    if not CHARACTERIZE_SCRIPT.is_file():  # pragma: no cover - repo layout invariant
         pytest.fail(f"characterization script missing: {CHARACTERIZE_SCRIPT}")
 
     cmd = [
@@ -85,7 +85,7 @@ def _run_characterize(reports_dir: Path, sim_dir: Path, build_dir: Path) -> subp
 
 
 def _load_csv(path: Path) -> pd.DataFrame:
-    if not path.is_file():
+    if not path.is_file():  # pragma: no cover - guarded by characterization fixture
         pytest.fail(f"expected CSV not found: {path}")
     return pd.read_csv(path)
 
@@ -172,7 +172,7 @@ def characterization_reports(tmp_path_factory: pytest.TempPathFactory) -> Path:
     build_dir = root / "build"
 
     proc = _run_characterize(reports_dir, sim_dir, build_dir)
-    if proc.returncode != 0:
+    if proc.returncode != 0:  # pragma: no cover - exercised when ngspice/driver fails
         pytest.fail(
             "characterization script failed "
             f"(exit {proc.returncode})\n"
@@ -180,13 +180,86 @@ def characterization_reports(tmp_path_factory: pytest.TempPathFactory) -> Path:
             f"stderr:\n{proc.stderr}"
         )
     summary = reports_dir / "characterization_results.csv"
-    if not summary.is_file():
+    if not summary.is_file():  # pragma: no cover - driver contract
         pytest.fail(
             "characterization did not write characterization_results.csv\n"
             f"stdout:\n{proc.stdout}\n"
             f"stderr:\n{proc.stderr}"
         )
     return reports_dir
+
+
+@pytest.mark.verification
+def test_expected_grid_size_matches_project_context() -> None:
+    """Locked regression grid size is cells × supplies × corners × temps × SEU."""
+    assert _expected_grid_size() == (
+        len(REGRESSION_CELLS)
+        * len(REGRESSION_SUPPLIES)
+        * len(REGRESSION_CORNERS)
+        * len(REGRESSION_TEMPERATURES)
+        * len(REGRESSION_SEU_STATES)
+    )
+
+
+@pytest.mark.verification
+def test_prepare_for_compare_without_identity_columns() -> None:
+    """Volatile path columns are dropped even when identity keys are absent."""
+    df = pd.DataFrame(
+        {
+            "metric": [2.0, 1.0],
+            "raw_path": ["/tmp/a.raw", "/tmp/b.raw"],
+            "log_path": ["/tmp/a.log", "/tmp/b.log"],
+            "message": ["", ""],
+        }
+    )
+    out = _prepare_for_compare(df)
+    assert list(out.columns) == ["metric"]
+    assert list(out["metric"]) == [2.0, 1.0]
+
+
+@pytest.mark.verification
+def test_align_frames_reports_missing_golden_columns() -> None:
+    """Aligner fails fast when the generated CSV lacks golden columns."""
+    actual = pd.DataFrame({"a": [1.0]})
+    golden = pd.DataFrame({"a": [1.0], "b": [2.0]})
+    with pytest.raises(pytest.fail.Exception, match="missing golden columns"):
+        _align_frames(actual, golden)
+
+
+@pytest.mark.verification
+def test_compute_functional_coverage_edge_cases() -> None:
+    """Coverage helper returns 0.0 for empty grids or missing status column."""
+    assert compute_functional_coverage(pd.DataFrame(), 0) == 0.0
+    assert compute_functional_coverage(pd.DataFrame({"x": [1]}), 4) == 0.0
+    df = pd.DataFrame({"status": ["pass", "fail", "pass"]})
+    assert compute_functional_coverage(df, 3) == pytest.approx(2.0 / 3.0)
+
+
+@pytest.mark.verification
+def test_metric_deviation_nan_match_and_violation() -> None:
+    """NaN pairs are ignored; deviations beyond rtol raise with a clear message."""
+    matched = pd.DataFrame({"tpd_ns": [float("nan")], "tag": ["t0"]})
+    _assert_metric_deviation_within_tol(matched, matched)
+
+    actual = pd.DataFrame({"tpd_ns": [2.0]})
+    golden = pd.DataFrame({"tpd_ns": [1.0]})
+    with pytest.raises(pytest.fail.Exception, match="metric deviation"):
+        _assert_metric_deviation_within_tol(actual, golden, rtol=0.01)
+
+    tagged = pd.DataFrame({"tpd_ns": [2.0], "tag": ["POR_tt"]})
+    golden_tagged = pd.DataFrame({"tpd_ns": [1.0], "tag": ["POR_tt"]})
+    with pytest.raises(pytest.fail.Exception, match="POR_tt.tpd_ns"):
+        _assert_metric_deviation_within_tol(tagged, golden_tagged, rtol=0.01)
+
+
+@pytest.mark.verification
+def test_metric_deviation_many_violations_truncates_preview() -> None:
+    """When many metrics diverge, the failure message notes remaining count."""
+    n = 25
+    actual = pd.DataFrame({"tpd_ns": [2.0] * n, "tag": [f"r{i}" for i in range(n)]})
+    golden = pd.DataFrame({"tpd_ns": [1.0] * n, "tag": [f"r{i}" for i in range(n)]})
+    with pytest.raises(pytest.fail.Exception, match="and 5 more"):
+        _assert_metric_deviation_within_tol(actual, golden, rtol=0.01)
 
 
 @pytest.mark.verification
@@ -197,7 +270,7 @@ def test_characterization_csv_matches_golden(
 ) -> None:
     """Generated CSVs must match golden references within 1 % on all metrics."""
     golden_path = GOLDEN_DIR / csv_name
-    if not golden_path.is_file():
+    if not golden_path.is_file():  # pragma: no cover - golden fixtures are checked in
         pytest.fail(f"golden reference missing: {golden_path}")
 
     actual = _prepare_for_compare(_load_csv(characterization_reports / csv_name))

@@ -134,7 +134,20 @@ jobs:
         run: |
           cov_line="Coverage: not available"
           cov_pct="n/a"
-          if [[ -f reports/verification_coverage.txt ]]; then
+          # Prefer pytest-cov Cobertura XML (reports/coverage.xml)
+          if [[ -f reports/coverage.xml ]]; then
+            cov_pct=$(python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("reports/coverage.xml").getroot()
+          rate = root.attrib.get("line-rate")
+          if rate is None:
+              print("n/a")
+          else:
+              print(f"{float(rate) * 100:.2f}%")
+          PY
+            )
+            cov_line="pytest-cov line coverage: ${cov_pct} (reports/coverage.xml)"
+          elif [[ -f reports/verification_coverage.txt ]]; then
             cov_line=$(head -n 1 reports/verification_coverage.txt | tr -d '\r')
             cov_pct=$(grep -oE '[0-9]+(\.[0-9]+)?%' reports/verification_coverage.txt \
               | head -n 1 || true)
@@ -160,7 +173,21 @@ jobs:
           fi
           echo "coverage_line=${cov_line}" >> "$GITHUB_OUTPUT"
           echo "coverage_pct=${cov_pct}" >> "$GITHUB_OUTPUT"
+          mkdir -p ci-out
           printf '%s\n' "$cov_line" > ci-out/coverage_summary.txt
+          if [[ -f reports/coverage.xml ]]; then
+            mkdir -p ci-out/reports
+            cp -a reports/coverage.xml ci-out/reports/coverage.xml
+          fi
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT_SLUG }}-${{ github.sha }}-coverage
+          path: reports/coverage.xml
+          retention-days: 30
+          if-no-files-found: warn
 
       - name: Upload run-stage artifacts
         if: always()

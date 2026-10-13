@@ -1,0 +1,21 @@
+# pytest-cov / coverage.py configuration for the characterization regression suite.
+# Line-coverage gate applies to the in-process test package (scripts/characterize.py
+# is exercised as a subprocess and is gated by the ≥99 % functional-coverage test).
+
+[run]
+source = tests
+branch = False
+omit =
+    */tests/golden/*
+
+[report]
+fail_under = 99
+show_missing = True
+skip_covered = False
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+
+[xml]
+output = reports/coverage.xml
