@@ -1,0 +1,101 @@
+// =============================================================================
+// POR — parameterized Verilog-A behavioral model
+// Apogee RHBD I/O (sky130 g5v0d10v5 / device class g5v0d10v5)
+//
+// Ports match the schematic subckt:
+//   .subckt POR VDD VSS POR_N
+//
+// Equations are fitted to Epic 1 ngspice characterization
+// (analog/sim/por.json, analog/docs/por_sim_results.md):
+//   - release / re-assert thresholds with supply-dependent hysteresis
+//   - supply current at VDD hold (I_VDD_max)
+//   - active-low POR_N (0 while asserted, tracks VDD when released)
+// PVT and SEU enter as explicit parameters for corner / upset sweeps.
+// =============================================================================
+
+`include "disciplines.vams"
+
+module por(VDD, VSS, POR_N);
+
+    inout VDD, VSS, POR_N;
+    electrical VDD, VSS, POR_N;
+
+    // ---- Supply / operating-range parameters (1.4 V .. 5.5 V) ----------------
+    parameter real vdd_nom = 5.0 from [1.4:5.5];    // nominal I/O supply
+    parameter real soft_gain = 80.0 from (1:inf);   // tanh sharpness of trip
+    parameter real state_delay = 1n from (0:inf);   // hyst feedback delay (s)
+
+    // ---- Process / temperature / SEU ----------------------------------------
+    // process: -1 = ss, 0 = tt, +1 = ff  (scales thresholds & current)
+    parameter real process = 0 from [-1:1];
+    parameter real temp_c = 27 from [-55:125];      // Celsius
+    parameter integer seu = 0 from [0:1];           // 1 enables SEU pulse
+    parameter real seu_time = 150u from (0:inf);    // seconds (during hold)
+    parameter real seu_width = 1u from (0:inf);     // seconds
+    parameter real seu_amp = 1.0 from [0:1];        // fraction: 1 => force assert
+
+    // ---- Threshold fit coeffs (V) — Epic 1 tt@27 C supply table --------------
+    // v_release  = v_rel_c0 + v_rel_c1 * vdd_nom
+    // v_reassert = v_rea_c0 + v_rea_c1 * vdd_nom
+    // reproduces measured release/reassert for 1.4 / 3.3 / 5.5 V within ~0.5 mV.
+    parameter real v_rel_c0 = 1.12741093;
+    parameter real v_rel_c1 = 0.00340855;
+    parameter real v_rea_c0 = 1.10641489;
+    parameter real v_rea_c1 = -0.00463183;
+
+    // ---- Supply-current fit coeffs (uA) from Epic 1 -------------------------
+    // I_VDD(uA) = i_c0 + i_c1 * VDD + i_c2 * VDD^2
+    parameter real i_c0 = -1.48727856;
+    parameter real i_c1 =  1.09580173;
+    parameter real i_c2 =  1.13885518;
+
+    // ---- PVT scale knobs (defaults match ss/tt/ff + temp slope) --------------
+    // ss (+process=-1): higher Vt → higher release threshold, lower current
+    parameter real process_thresh_coeff = 0.12;     // ss:+12%, ff:-12%
+    parameter real temp_thresh_coeff = -0.001;      // thresholds fall with T
+    parameter real process_curr_coeff = 0.35;       // ff raises I_VDD
+    parameter real temp_curr_coeff = 0.005;         // current rises with T
+
+    // Internal quantities
+    real vdd_v, v_release, v_reassert, hyst;
+    real pvt_thresh, pvt_curr;
+    real v_th, state, state_d, seu_pulse, v_out_ideal;
+    real i_vdd_uA;
+
+    analog begin
+        // Supply (floor to avoid /0 during ramp-up)
+        vdd_v = max(V(VDD, VSS), 1.0e-3);
+
+        // Fitted thresholds at characterized supply, then PVT-scaled
+        pvt_thresh = (1.0 - process_thresh_coeff * process)
+                   * (1.0 + temp_thresh_coeff * (temp_c - 27.0));
+        v_release  = (v_rel_c0 + v_rel_c1 * vdd_nom) * pvt_thresh;
+        v_reassert = (v_rea_c0 + v_rea_c1 * vdd_nom) * pvt_thresh;
+        hyst = max(v_release - v_reassert, 1.0e-3);
+
+        // Hysteretic soft trip: delayed state selects release vs reassert th
+        // state_d=0 → trip at v_release; state_d=1 → trip at v_reassert
+        state_d = absdelay(state, state_delay, 1.0e-9);
+        v_th = v_reassert + hyst * (1.0 - state_d);
+        state = 0.5 * (1.0 + tanh(soft_gain * (vdd_v - v_th)));
+
+        // Active-low POR_N: 0 while asserted, tracks VDD when released
+        v_out_ideal = state * vdd_v;
+
+        // SEU: continuous soft window (no analog ops inside if) then recover
+        // window ~= 1 for t in [seu_time, seu_time+seu_width] when seu!=0
+        // Forces a temporary assert (POR_N → low) when seu_amp=1.
+        seu_pulse = seu * 0.25
+            * (1.0 + tanh(1.0e7 * ($abstime - seu_time)))
+            * (1.0 + tanh(1.0e7 * (seu_time + seu_width - $abstime)));
+        V(POR_N, VSS) <+ (1.0 - seu_pulse) * v_out_ideal
+                       + seu_pulse * vdd_v * (1.0 - seu_amp);
+
+        // Supply current (uA -> A), PVT-scaled; present once VDD is up
+        pvt_curr = (1.0 + process_curr_coeff * process)
+                 * (1.0 + temp_curr_coeff * (temp_c - 27.0));
+        i_vdd_uA = (i_c0 + i_c1 * vdd_v + i_c2 * vdd_v * vdd_v) * pvt_curr;
+        I(VDD, VSS) <+ max(i_vdd_uA, 0.0) * 1.0e-6;
+    end
+
+endmodule
