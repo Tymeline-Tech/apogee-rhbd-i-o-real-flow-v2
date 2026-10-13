@@ -1,0 +1,846 @@
+{
+  "accepted": true,
+  "functional_coverage": 1.0,
+  "min_functional_coverage": 0.99,
+  "max_rel_deviation": 0.009806375000003496,
+  "max_allowed_rel_deviation": 0.01,
+  "icarus_pass": true,
+  "icarus_corners": 13,
+  "bins_hit": 74,
+  "bins_total": 74,
+  "bins": [
+    {
+      "name": "block/LS_UP",
+      "hit": true,
+      "detail": "exercised by tb_top_io"
+    },
+    {
+      "name": "block/POR",
+      "hit": true,
+      "detail": "exercised by tb_top_io"
+    },
+    {
+      "name": "block/reset_combiner",
+      "hit": true,
+      "detail": "exercised by tb_top_io"
+    },
+    {
+      "name": "icarus/all_corners",
+      "hit": true,
+      "detail": "corners=13/13"
+    },
+    {
+      "name": "icarus/result_pass",
+      "hit": true,
+      "detail": "errors=0"
+    },
+    {
+      "name": "icarus/vcd_dumped",
+      "hit": true,
+      "detail": "/workspace/reports/verification_artifacts/icarus/tb_top_io.vcd"
+    },
+    {
+      "name": "pvt/process/ss",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "pvt/process/tt",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "pvt/process/ff",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "pvt/temp/-55.0",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "pvt/temp/27.0",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "pvt/temp/125.0",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "seu/False",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "seu/True",
+      "hit": true,
+      "detail": "ls=True por=True"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->3.3V/tpd_ns",
+      "hit": true,
+      "detail": "rel_err=3.347e-08"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->3.3V/I_vddh0_nA",
+      "hit": true,
+      "detail": "rel_err=7.059e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->3.3V/I_vddh1_nA",
+      "hit": true,
+      "detail": "rel_err=7.143e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->3.3V/I_vddl1_nA",
+      "hit": true,
+      "detail": "rel_err=2.740e-01"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->5.5V/tpd_ns",
+      "hit": true,
+      "detail": "rel_err=5.146e-08"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->5.5V/I_vddh0_nA",
+      "hit": true,
+      "detail": "rel_err=5.556e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->5.5V/I_vddh1_nA",
+      "hit": true,
+      "detail": "rel_err=5.952e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.4->5.5V/I_vddl1_nA",
+      "hit": true,
+      "detail": "rel_err=2.740e-01"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->3.3V/tpd_ns",
+      "hit": true,
+      "detail": "rel_err=4.857e-08"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->3.3V/I_vddh0_nA",
+      "hit": true,
+      "detail": "rel_err=7.059e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->3.3V/I_vddh1_nA",
+      "hit": true,
+      "detail": "rel_err=7.143e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->3.3V/I_vddl1_nA",
+      "hit": true,
+      "detail": "rel_err=1.810e-01"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->5.5V/tpd_ns",
+      "hit": true,
+      "detail": "rel_err=7.960e-08"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->5.5V/I_vddh0_nA",
+      "hit": true,
+      "detail": "rel_err=5.556e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->5.5V/I_vddh1_nA",
+      "hit": true,
+      "detail": "rel_err=5.952e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@1.8->5.5V/I_vddl1_nA",
+      "hit": true,
+      "detail": "rel_err=1.810e-01"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->3.3V/tpd_ns",
+      "hit": true,
+      "detail": "rel_err=2.122e-07"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->3.3V/I_vddh0_nA",
+      "hit": true,
+      "detail": "rel_err=7.059e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->3.3V/I_vddh1_nA",
+      "hit": true,
+      "detail": "rel_err=7.143e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->3.3V/I_vddl1_nA",
+      "hit": true,
+      "detail": "rel_err=1.000e-03"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->5.5V/tpd_ns",
+      "hit": true,
+      "detail": "rel_err=3.474e-07"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->5.5V/I_vddh0_nA",
+      "hit": true,
+      "detail": "rel_err=5.556e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->5.5V/I_vddh1_nA",
+      "hit": true,
+      "detail": "rel_err=5.952e-05"
+    },
+    {
+      "name": "model_accuracy/LS_UP/level_shifter@3.3->5.5V/I_vddl1_nA",
+      "hit": true,
+      "detail": "rel_err=1.000e-03"
+    },
+    {
+      "name": "model_accuracy/POR/por@1.4V/V_release",
+      "hit": true,
+      "detail": "rel_err=1.616e-04"
+    },
+    {
+      "name": "model_accuracy/POR/por@1.4V/V_reassert",
+      "hit": true,
+      "detail": "rel_err=6.334e-05"
+    },
+    {
+      "name": "model_accuracy/POR/por@1.4V/hysteresis",
+      "hit": true,
+      "detail": "rel_err=7.893e-03"
+    },
+    {
+      "name": "model_accuracy/POR/por@1.4V/I_uA",
+      "hit": true,
+      "detail": "rel_err=6.494e-09"
+    },
+    {
+      "name": "model_accuracy/POR/por@1.4V/t_release_us",
+      "hit": true,
+      "detail": "rel_err=3.358e-04"
+    },
+    {
+      "name": "model_accuracy/POR/por@3.3V/V_release",
+      "hit": true,
+      "detail": "rel_err=2.993e-04"
+    },
+    {
+      "name": "model_accuracy/POR/por@3.3V/V_reassert",
+      "hit": true,
+      "detail": "rel_err=1.190e-04"
+    },
+    {
+      "name": "model_accuracy/POR/por@3.3V/hysteresis",
+      "hit": true,
+      "detail": "rel_err=9.806e-03"
+    },
+    {
+      "name": "model_accuracy/POR/por@3.3V/I_uA",
+      "hit": true,
+      "detail": "rel_err=4.074e-09"
+    },
+    {
+      "name": "model_accuracy/POR/por@3.3V/t_release_us",
+      "hit": true,
+      "detail": "rel_err=4.300e-04"
+    },
+    {
+      "name": "model_accuracy/POR/por@5.5V/V_release",
+      "hit": true,
+      "detail": "rel_err=1.378e-04"
+    },
+    {
+      "name": "model_accuracy/POR/por@5.5V/V_reassert",
+      "hit": true,
+      "detail": "rel_err=5.567e-05"
+    },
+    {
+      "name": "model_accuracy/POR/por@5.5V/hysteresis",
+      "hit": true,
+      "detail": "rel_err=3.356e-03"
+    },
+    {
+      "name": "model_accuracy/POR/por@5.5V/I_uA",
+      "hit": true,
+      "detail": "rel_err=3.847e-09"
+    },
+    {
+      "name": "model_accuracy/POR/por@5.5V/t_release_us",
+      "hit": true,
+      "detail": "rel_err=3.055e-04"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/ff/125.0/gain_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/ff/125.0/delay_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/ff/125.0/upset_tolerance",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/ss/-55.0/gain_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/ss/-55.0/delay_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/ss/-55.0/upset_tolerance",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/tt/27.0/gain_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/tt/27.0/delay_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/LS_UP/5.5/tt/27.0/upset_tolerance",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/ff/125.0/gain_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/ff/125.0/reset_time_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/ff/125.0/upset_tolerance",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/ss/-55.0/gain_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/ss/-55.0/reset_time_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/ss/-55.0/upset_tolerance",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/tt/27.0/gain_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/tt/27.0/reset_time_seu_vs_nom",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "csv_consistency/POR/3.3/tt/27.0/upset_tolerance",
+      "hit": true,
+      "detail": "rel_err=0.000e+00"
+    },
+    {
+      "name": "supply/1.4V",
+      "hit": true,
+      "detail": "in verification matrix"
+    },
+    {
+      "name": "supply/3.3V",
+      "hit": true,
+      "detail": "in verification matrix"
+    },
+    {
+      "name": "supply/5.5V",
+      "hit": true,
+      "detail": "in verification matrix"
+    }
+  ],
+  "compares": [
+    {
+      "name": "LS_UP/level_shifter@1.4->3.3V/tpd_ns",
+      "reference": 0.3,
+      "measured": 0.29999998995918364,
+      "abs_err": 1.0040816345036063e-08,
+      "rel_err": 3.346938781678688e-08,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.4->3.3V/I_vddh0_nA",
+      "reference": 0.017,
+      "measured": 0.016998799999999998,
+      "abs_err": 1.2000000000032818e-06,
+      "rel_err": 7.058823529431068e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.4->3.3V/I_vddh1_nA",
+      "reference": 0.021,
+      "measured": 0.020998499999999996,
+      "abs_err": 1.5000000000049696e-06,
+      "rel_err": 7.142857142880807e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.4->3.3V/I_vddl1_nA",
+      "reference": 0.001,
+      "measured": 0.001274,
+      "abs_err": 0.00027399999999999994,
+      "rel_err": 0.2739999999999999,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.4->5.5V/tpd_ns",
+      "reference": 0.349,
+      "measured": 0.3489999820408163,
+      "abs_err": 1.7959183695737124e-08,
+      "rel_err": 5.1458979070880016e-08,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.4->5.5V/I_vddh0_nA",
+      "reference": 0.036,
+      "measured": 0.035998,
+      "abs_err": 1.9999999999950613e-06,
+      "rel_err": 5.555555555541837e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.4->5.5V/I_vddh1_nA",
+      "reference": 0.042,
+      "measured": 0.04199749999999999,
+      "abs_err": 2.500000000009439e-06,
+      "rel_err": 5.952380952403426e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.4->5.5V/I_vddl1_nA",
+      "reference": 0.001,
+      "measured": 0.001274,
+      "abs_err": 0.00027399999999999994,
+      "rel_err": 0.2739999999999999,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->3.3V/tpd_ns",
+      "reference": 0.213,
+      "measured": 0.21299998965432088,
+      "abs_err": 1.0345679118950457e-08,
+      "rel_err": 4.857126346925097e-08,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->3.3V/I_vddh0_nA",
+      "reference": 0.017,
+      "measured": 0.016998799999999998,
+      "abs_err": 1.2000000000032818e-06,
+      "rel_err": 7.058823529431068e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->3.3V/I_vddh1_nA",
+      "reference": 0.021,
+      "measured": 0.020998499999999996,
+      "abs_err": 1.5000000000049696e-06,
+      "rel_err": 7.142857142880807e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->3.3V/I_vddl1_nA",
+      "reference": 0.002,
+      "measured": 0.0016380000000000001,
+      "abs_err": 0.0003619999999999999,
+      "rel_err": 0.18099999999999994,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->5.5V/tpd_ns",
+      "reference": 0.228,
+      "measured": 0.22799998185185183,
+      "abs_err": 1.814814817868715e-08,
+      "rel_err": 7.959714113459277e-08,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->5.5V/I_vddh0_nA",
+      "reference": 0.036,
+      "measured": 0.035998,
+      "abs_err": 1.9999999999950613e-06,
+      "rel_err": 5.555555555541837e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->5.5V/I_vddh1_nA",
+      "reference": 0.042,
+      "measured": 0.04199749999999999,
+      "abs_err": 2.500000000009439e-06,
+      "rel_err": 5.952380952403426e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@1.8->5.5V/I_vddl1_nA",
+      "reference": 0.002,
+      "measured": 0.0016380000000000001,
+      "abs_err": 0.0003619999999999999,
+      "rel_err": 0.18099999999999994,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->3.3V/tpd_ns",
+      "reference": 0.053,
+      "measured": 0.052999988753902674,
+      "abs_err": 1.1246097324224547e-08,
+      "rel_err": 2.1219051555140655e-07,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->3.3V/I_vddh0_nA",
+      "reference": 0.017,
+      "measured": 0.016998799999999998,
+      "abs_err": 1.2000000000032818e-06,
+      "rel_err": 7.058823529431068e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->3.3V/I_vddh1_nA",
+      "reference": 0.021,
+      "measured": 0.020998499999999996,
+      "abs_err": 1.5000000000049696e-06,
+      "rel_err": 7.142857142880807e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->3.3V/I_vddl1_nA",
+      "reference": 0.003,
+      "measured": 0.003003,
+      "abs_err": 2.9999999999999645e-06,
+      "rel_err": 0.000999999999999988,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->5.5V/tpd_ns",
+      "reference": 0.055,
+      "measured": 0.05499998089531681,
+      "abs_err": 1.9104683189608007e-08,
+      "rel_err": 3.4735787617469105e-07,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->5.5V/I_vddh0_nA",
+      "reference": 0.036,
+      "measured": 0.035998,
+      "abs_err": 1.9999999999950613e-06,
+      "rel_err": 5.555555555541837e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->5.5V/I_vddh1_nA",
+      "reference": 0.042,
+      "measured": 0.04199749999999999,
+      "abs_err": 2.500000000009439e-06,
+      "rel_err": 5.952380952403426e-05,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/level_shifter@3.3->5.5V/I_vddl1_nA",
+      "reference": 0.003,
+      "measured": 0.003003,
+      "abs_err": 2.9999999999999645e-06,
+      "rel_err": 0.000999999999999988,
+      "passed": true
+    },
+    {
+      "name": "POR/por@1.4V/V_release",
+      "reference": 1.132,
+      "measured": 1.1321828999999999,
+      "abs_err": 0.00018289999999998585,
+      "rel_err": 0.0001615724381625317,
+      "passed": true
+    },
+    {
+      "name": "POR/por@1.4V/V_reassert",
+      "reference": 1.1,
+      "measured": 1.099930328,
+      "abs_err": 6.967200000018714e-05,
+      "rel_err": 6.333818181835194e-05,
+      "passed": true
+    },
+    {
+      "name": "POR/por@1.4V/hysteresis",
+      "reference": 0.032,
+      "measured": 0.03225257199999998,
+      "abs_err": 0.0002525719999999787,
+      "rel_err": 0.007892874999999334,
+      "passed": true
+    },
+    {
+      "name": "POR/por@1.4V/I_uA",
+      "reference": 2.279,
+      "measured": 2.2790000147999994,
+      "abs_err": 1.4799999448200651e-08,
+      "rel_err": 6.494076107152546e-09,
+      "passed": true
+    },
+    {
+      "name": "POR/por@1.4V/t_release_us",
+      "reference": 80.83,
+      "measured": 80.85714285714286,
+      "abs_err": 0.02714285714286291,
+      "rel_err": 0.0003358017709125685,
+      "passed": true
+    },
+    {
+      "name": "POR/por@3.3V/V_release",
+      "reference": 1.139,
+      "measured": 1.1386591449999999,
+      "abs_err": 0.0003408550000001398,
+      "rel_err": 0.00029925812115903403,
+      "passed": true
+    },
+    {
+      "name": "POR/por@3.3V/V_reassert",
+      "reference": 1.091,
+      "measured": 1.091129851,
+      "abs_err": 0.00012985100000006966,
+      "rel_err": 0.000119020164986315,
+      "passed": true
+    },
+    {
+      "name": "POR/por@3.3V/hysteresis",
+      "reference": 0.048,
+      "measured": 0.04752929399999983,
+      "abs_err": 0.0004707060000001678,
+      "rel_err": 0.009806375000003496,
+      "passed": true
+    },
+    {
+      "name": "POR/por@3.3V/I_uA",
+      "reference": 14.531,
+      "measured": 14.531000059199998,
+      "abs_err": 5.9199997792802606e-08,
+      "rel_err": 4.074048433886353e-09,
+      "passed": true
+    },
+    {
+      "name": "POR/por@3.3V/t_release_us",
+      "reference": 34.53,
+      "measured": 34.515151515151516,
+      "abs_err": 0.014848484848485555,
+      "rel_err": 0.00043001693740184053,
+      "passed": true
+    },
+    {
+      "name": "POR/por@5.5V/V_release",
+      "reference": 1.146,
+      "measured": 1.1461579549999998,
+      "abs_err": 0.0001579549999999319,
+      "rel_err": 0.00013783158813257583,
+      "passed": true
+    },
+    {
+      "name": "POR/por@5.5V/V_reassert",
+      "reference": 1.081,
+      "measured": 1.080939825,
+      "abs_err": 6.017499999999565e-05,
+      "rel_err": 5.566604995374251e-05,
+      "passed": true
+    },
+    {
+      "name": "POR/por@5.5V/hysteresis",
+      "reference": 0.065,
+      "measured": 0.06521812999999987,
+      "abs_err": 0.00021812999999987204,
+      "rel_err": 0.0033558461538441852,
+      "passed": true
+    },
+    {
+      "name": "POR/por@5.5V/I_uA",
+      "reference": 38.99,
+      "measured": 38.99000015,
+      "abs_err": 1.4999999820020093e-07,
+      "rel_err": 3.847140246222132e-09,
+      "passed": true
+    },
+    {
+      "name": "POR/por@5.5V/t_release_us",
+      "reference": 20.83,
+      "measured": 20.836363636363636,
+      "abs_err": 0.006363636363637681,
+      "rel_err": 0.0003055034260027692,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/ff/125.0/gain_seu_vs_nom",
+      "reference": 3.0555555555555554,
+      "measured": 3.0555555555555554,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/ff/125.0/delay_seu_vs_nom",
+      "reference": 2.2799503560009921e-10,
+      "measured": 2.2799503560009921e-10,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/ff/125.0/upset_tolerance",
+      "reference": 1.0,
+      "measured": 1.0,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/ss/-55.0/gain_seu_vs_nom",
+      "reference": 3.0555555555555554,
+      "measured": 3.0555555555555554,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/ss/-55.0/delay_seu_vs_nom",
+      "reference": 2.2799503560009921e-10,
+      "measured": 2.2799503560009921e-10,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/ss/-55.0/upset_tolerance",
+      "reference": 1.0,
+      "measured": 1.0,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/tt/27.0/gain_seu_vs_nom",
+      "reference": 3.0555555555555554,
+      "measured": 3.0555555555555554,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/tt/27.0/delay_seu_vs_nom",
+      "reference": 2.2799503560009921e-10,
+      "measured": 2.2799503560009921e-10,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "LS_UP/5.5/tt/27.0/upset_tolerance",
+      "reference": 1.0,
+      "measured": 1.0,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/ff/125.0/gain_seu_vs_nom",
+      "reference": 346.0000000000148,
+      "measured": 346.0000000000148,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/ff/125.0/reset_time_seu_vs_nom",
+      "reference": 3.4521926939437794e-05,
+      "measured": 3.4521926939437794e-05,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/ff/125.0/upset_tolerance",
+      "reference": 1.0,
+      "measured": 1.0,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/ss/-55.0/gain_seu_vs_nom",
+      "reference": 346.0000000000148,
+      "measured": 346.0000000000148,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/ss/-55.0/reset_time_seu_vs_nom",
+      "reference": 3.4521926939437794e-05,
+      "measured": 3.4521926939437794e-05,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/ss/-55.0/upset_tolerance",
+      "reference": 1.0,
+      "measured": 1.0,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/tt/27.0/gain_seu_vs_nom",
+      "reference": 346.0000000000148,
+      "measured": 346.0000000000148,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/tt/27.0/reset_time_seu_vs_nom",
+      "reference": 3.4521926939437794e-05,
+      "measured": 3.4521926939437794e-05,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    },
+    {
+      "name": "POR/3.3/tt/27.0/upset_tolerance",
+      "reference": 1.0,
+      "measured": 1.0,
+      "abs_err": 0.0,
+      "rel_err": 0.0,
+      "passed": true
+    }
+  ],
+  "notes": [
+    "SPICE references: analog/sim/LS_UP.json, analog/sim/POR.json",
+    "Perf CSVs: reports/ls_up_perf.csv, reports/por_perf.csv",
+    "Icarus TB: rtl/tb_top_io.v + rtl/reset_combiner.v"
+  ]
+}

@@ -1,0 +1,14 @@
+# Python / pytest
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.venv/
+venv/
+
+# Icarus / simulation scratch
+*.vvp
+*.vcd
+reports/verification_artifacts/
