@@ -1,0 +1,23 @@
+// Minimal Accellera disciplines for portable Verilog-A compilation.
+`ifdef DISCIPLINES_VAMS
+`else
+`define DISCIPLINES_VAMS 1
+
+nature Current
+  units = "A";
+  access = I;
+  abstol = 1e-12;
+endnature
+
+nature Voltage
+  units = "V";
+  access = V;
+  abstol = 1e-6;
+endnature
+
+discipline electrical
+  potential Voltage;
+  flow Current;
+enddiscipline
+
+`endif
